@@ -1,0 +1,17 @@
+const express = require('express');
+const cors = require('cors');
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+const authRoutes = require('./routes/auth')
+app.use('/api/auth', authRoutes);
+
+const ticketRoutes = require('./routes/tickets');
+app.use('/api/tickets', ticketRoutes);
+
+app.listen(3000, () => {
+    console.log('Servidor corriendo en http://localhost:3000');
+});

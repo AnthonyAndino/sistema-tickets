@@ -1,0 +1,76 @@
+body {
+    font-family: Arial;
+    background: #f4f6f9;
+    margin: 0;
+}
+
+header {
+    background: #1e293b;
+    color: white;
+    padding: 15px;
+    text-align: center;
+}
+
+main {
+    padding: 20px;
+}
+
+.form-container {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+button {
+    padding: 10px;
+    border: none;
+    background: #2563eb;
+    color: white;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+button:hover {
+    background: #1d4ed8;
+}
+
+.tickets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.ticket {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    border-left: 5px solid #ccc;
+}
+
+.ticket.pendiente {
+    border-color: orange;
+}
+
+.ticket.resuelto {
+    border-color: green;
+}
+
+.filtros {
+    margin-bottom: 15px;
+}
+
+.filtros button {
+    margin-right: 15px;
+    background: #64748b;
+}
+
+.filtros button:hover {
+    background: #475569;
+}
