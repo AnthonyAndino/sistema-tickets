@@ -7,7 +7,7 @@ router.post('/', (req, res) => {
     console.log("HEADERS:", req.headers);
     console.log("BODY:", req.body);
 
-    const { titulo, descripcion } = req.body || {};
+    const { titulo, descripcion, tecnico_id } = req.body || {};
 
     if (!titulo || !descripcion) {
         return res.status(400).json({
@@ -15,9 +15,9 @@ router.post('/', (req, res) => {
         });
     }
 
-    const sql = 'INSERT INTO tickets (titulo, descripcion, estado) VALUES (?, ?, "Pendiente")';
+    const sql = 'INSERT INTO tickets (titulo, descripcion, estado, tecnico_id) VALUES (?, ?, "Pendiente", ?)';
 
-    db.query(sql, [titulo, descripcion], (err, result) => {
+    db.query(sql, [titulo, descripcion, tecnico_id], (err, result) => {
         if (err) return res.status(500).json(err);
 
         res.json({ mensaje: 'Ticket creado correctamente' });
@@ -26,11 +26,12 @@ router.post('/', (req, res) => {
 
 // Obtener tickets
 router.get('/', (req, res) => {
-    db.query('SELECT * FROM tickets', (err, results) => {
-        if (err) return res.status(500).json(err);
+    db.query('SELECT tickets.*, tecnicos.nombre AS tecnico FROM tickets LEFT JOIN tecnicos ON tickets.tecnico_id = tecnicos.id',
+        (err, results) => {
+            if (err) return res.status(500).json(err);
 
-        res.json(results);
-    });
+            res.json(results);
+        });
 });
 
 //cambiar estdo de ticket

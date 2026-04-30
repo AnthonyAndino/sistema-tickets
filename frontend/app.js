@@ -31,6 +31,7 @@ function mostrarTickets() {
             <div class="ticket ${estadoClase}">
                 <h3>${ticket.titulo}</h3>
                 <p>${ticket.descripcion}</p>
+                <p><strong>Técnico:</strong> ${ticket.tecnico || "Sin asignar"}</p>
                 <strong>${ticket.estado}</strong>
 
                 ${ticket.estado === "Pendiente" ?
@@ -42,6 +43,20 @@ function mostrarTickets() {
         `;
     });
 }
+
+//cargar tecnicos
+async function cargarTecnicos() {
+    const res = await fetch('http://localhost:3000/api/tecnicos')
+    const data = await res.json();
+
+    const select = document.getElementById('tecnico');
+
+    data.forEach(t => {
+        select.innerHTML += `<option value="${t.id}">${t.nombre}</option>`;
+    });
+}
+
+
 
 //funcion filtar
 function filtrar(tipo) {
@@ -55,13 +70,14 @@ form.addEventListener('submit', async (e) => {
 
     const titulo = document.getElementById('titulo').value;
     const descripcion = document.getElementById('descripcion').value;
+    const tecnico_id = document.getElementById('tecnico').value;
 
     await fetch(API_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ titulo, descripcion })
+        body: JSON.stringify({ titulo, descripcion, tecnico_id })
     });
 
     form.reset();
@@ -87,4 +103,5 @@ async function eliminarTicket(id) {
 }
 
 //cargar al inicio
+cargarTecnicos();
 obtenerTickets();

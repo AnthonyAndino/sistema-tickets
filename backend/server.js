@@ -12,6 +12,9 @@ app.use('/api/auth', authRoutes);
 const ticketRoutes = require('./routes/tickets');
 app.use('/api/tickets', ticketRoutes);
 
+const tecnicosRoutes = require('./routes/tecnicos');
+app.use('/api/tecnicos', tecnicosRoutes);
+
 app.listen(3000, () => {
     console.log('Servidor corriendo en http://localhost:3000');
 });
