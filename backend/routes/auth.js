@@ -17,7 +17,7 @@ router.post('/register', async (req, res) => {
     db.query(sql, [username, hashed], (err) => {
         if (err) return res.status(500).json(err);
 
-        res.json({mensaje: 'Usuario registrado' });
+        res.json({ mensaje: 'Usuario registrado' });
     });
 });
 
@@ -29,7 +29,7 @@ router.post('/login', (req, res) => {
         if (err) return res.status(500).json(err);
 
         if (results.length === 0) {
-            return  res.status(400).json({ error: 'Usuario no existe' });
+            return res.status(400).json({ error: 'Usuario no existe' });
         }
 
         const user = results[0];
@@ -40,7 +40,7 @@ router.post('/login', (req, res) => {
             return res.status(400).json({ error: 'Constraseña incorrecta' });
         }
 
-        const token = jwt.sign({ id: user.id }, SECRET);
+        const token = jwt.sign({ id: user.id, username: user.username }, SECRET, { expiresIn: '2h' });
 
         res.json({ token });
     });

@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const verficarToken = require('../middleware/authMiddleware');
+const verificarToken = require('../middleware/authMiddleware');
 
 // Crear ticket
-router.post('/', (req, res) => {
+router.post('/', verificarToken, (req, res) => {
     console.log("HEADERS:", req.headers);
     console.log("BODY:", req.body);
 
@@ -25,7 +27,7 @@ router.post('/', (req, res) => {
 });
 
 // Obtener tickets
-router.get('/', (req, res) => {
+router.get('/', verificarToken, (req, res) => {
     db.query('SELECT tickets.*, tecnicos.nombre AS tecnico FROM tickets LEFT JOIN tecnicos ON tickets.tecnico_id = tecnicos.id',
         (err, results) => {
             if (err) return res.status(500).json(err);
@@ -35,7 +37,7 @@ router.get('/', (req, res) => {
 });
 
 //cambiar estdo de ticket
-router.put('/:id', (req, res) => {
+router.put('/:id', verificarToken, (req, res) => {
     const { id } = req.params;
 
     const sql = 'UPDATE tickets SET estado = "Resuelto" WHERE id = ?';
@@ -48,7 +50,7 @@ router.put('/:id', (req, res) => {
 });
 
 //eliminar ticket
-router.delete('/:id', (req, res) => {
+router.delete('/:id', verificarToken, (req, res) => {
     const { id } = req.params;
 
     const sql = 'DELETE FROM tickets WHERE id = ?';

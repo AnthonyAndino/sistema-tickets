@@ -1,14 +1,20 @@
 const API_URL = 'http://localhost:3000/api/tickets';
 
+const token = localStorage.getItem('token')
 const form = document.getElementById('ticketForm');
 const ticketDiv = document.getElementById('tickets');
+
 
 let ticketsGlobal = [];
 let filtroActual = 'todos';
 
 //Obtener tickets
 async function obtenerTickets() {
-    const res = await fetch(API_URL);
+    const res = await fetch(API_URL, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
     const data = await res.json();
 
     ticketsGlobal = data;
@@ -46,7 +52,11 @@ function mostrarTickets() {
 
 //cargar tecnicos
 async function cargarTecnicos() {
-    const res = await fetch('http://localhost:3000/api/tecnicos')
+    const res = await fetch('http://localhost:3000/api/tecnicos', {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
     const data = await res.json();
 
     const select = document.getElementById('tecnico');
@@ -75,7 +85,8 @@ form.addEventListener('submit', async (e) => {
     await fetch(API_URL, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ titulo, descripcion, tecnico_id })
     });
@@ -87,7 +98,10 @@ form.addEventListener('submit', async (e) => {
 //funcion para resolver
 async function resolverTicket(id) {
     await fetch(`${API_URL}/${id}`, {
-        method: 'PUT'
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
     });
 
     obtenerTickets();
@@ -96,7 +110,10 @@ async function resolverTicket(id) {
 //funcion eliminar
 async function eliminarTicket(id) {
     await fetch(`${API_URL}/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
     });
 
     obtenerTickets();
