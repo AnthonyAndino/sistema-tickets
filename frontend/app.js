@@ -8,6 +8,12 @@ const ticketDiv = document.getElementById('tickets');
 let ticketsGlobal = [];
 let filtroActual = 'todos';
 
+//logout
+function logout() {
+    localStorage.removeItem('token');
+    window.location.href = 'login.html';
+}
+
 //OBetener usuario
 function obetenerUsuario() {
     const token = localStorage.getItem('token');
@@ -139,7 +145,17 @@ async function eliminarTicket(id) {
     obtenerTickets();
 }
 
+function bloquearAtras() {
+    window.history.pushState(null, null, window.location.href);
+
+    window.onpopstate = function () {
+        window.location.href = 'login.html';
+    };
+}
+
+
 //cargar al inicio
 cargarTecnicos();
 mostrarUsuario();
 obtenerTickets();
+bloquearAtras();
