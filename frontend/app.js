@@ -8,6 +8,18 @@ const ticketDiv = document.getElementById('tickets');
 let ticketsGlobal = [];
 let filtroActual = 'todos';
 
+//OBetener usuario
+function obetenerUsuario() {
+    const token = localStorage.getItem('token');
+
+    if (!token) return null;
+
+    const payload = token.split('.')[1];
+    const decoded = JSON.parse(atob(payload));
+
+    return decoded;
+}
+
 //Obtener tickets
 async function obtenerTickets() {
     const res = await fetch(API_URL, {
@@ -19,6 +31,14 @@ async function obtenerTickets() {
 
     ticketsGlobal = data;
     mostrarTickets();
+}
+
+function mostrarUsuario() {
+    const user = obetenerUsuario();
+
+    if (user) {
+        document.getElementById('usuarioActivo').innerText = `Usuario: ${user.username}`;
+    }
 }
 
 function mostrarTickets() {
@@ -121,4 +141,5 @@ async function eliminarTicket(id) {
 
 //cargar al inicio
 cargarTecnicos();
+mostrarUsuario();
 obtenerTickets();
