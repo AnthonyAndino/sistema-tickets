@@ -1,6 +1,9 @@
 async function login() {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
+    const error = document.getElementById('error');
+
+    error.innerHTML = "";
 
     const res = await fetch('http://localhost:3000/api/auth/login', {
         method: 'POST',
@@ -14,6 +17,6 @@ async function login() {
         localStorage.setItem('token', data.token);
         window.location.href = 'index.html';
     } else {
-        alert('Error al iniciar sesion');
+        error.innerHTML = "Usuario o contraseña incorrectos";
     }
 }
