@@ -4,7 +4,7 @@ const db = require('../db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-const SECRET = "secreto123";
+const SECRET = process.env.JWT_SECRET;
 
 //registro
 router.post('/register', async (req, res) => {
