@@ -6,15 +6,18 @@ const verificarToken = require('../middleware/authMiddleware');
 
 // Crear ticket
 router.post('/', verificarToken, (req, res) => {
-    console.log("HEADERS:", req.headers);
-    console.log("BODY:", req.body);
+    const { titulo, descripcion, tecnico_id } = req.body;
 
-    const { titulo, descripcion, tecnico_id } = req.body || {};
+    if (!titulo) {
+        return res.status(400).json({ error: 'El titulo es obligatoio ' });
+    }
 
-    if (!titulo || !descripcion) {
-        return res.status(400).json({
-            error: "Datos no recibidos correctamente"
-        });
+    if (typeof titulo !== 'string' || titulo.length > 255) {
+        return res.status(400).json({ error: 'El titulo debe ser texto y maximo 255 caracteres' });
+    }
+
+    if (tecnico_id && (!Number.isInteger(Number(tecnico_id)) || tecnico_id <= 0)) {
+        return res.status(400).json({ error: 'El ID del tecnico debe ser un numero valido' });
     }
 
     const sql = 'INSERT INTO tickets (titulo, descripcion, estado, tecnico_id) VALUES (?, ?, "Pendiente", ?)';

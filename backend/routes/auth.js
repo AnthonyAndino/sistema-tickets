@@ -10,6 +10,17 @@ const SECRET = process.env.JWT_SECRET;
 router.post('/register', async (req, res) => {
     const { username, password } = req.body;
 
+    if (!username || !password) {
+        return res.status(400).json({ error: 'Usuario y contraseña son obligatorios' });
+    }
+
+    if (username.length < 3) {
+        return res.status(400).json({ error: 'El usuario debe tener al menos 3 caracteres' })
+    }
+    if (password.length < 0) {
+        return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' })
+    }
+
     const hashed = await bcrypt.hash(password, 10);
 
     const sql = 'INSERT INTO usuarios (username, password) VALUES (?, ?)';
@@ -24,6 +35,10 @@ router.post('/register', async (req, res) => {
 //login
 router.post('/login', (req, res) => {
     const { username, password } = req.body;
+
+    if (!username || !password) {
+        return res.status(400).json({ error: 'Usuario y contraseña son obligatorios' });
+    }
 
     db.query('SELECT * FROM usuarios WHERE username = ?', [username], async (err, results) => {
         if (err) return res.status(500).json(err);
