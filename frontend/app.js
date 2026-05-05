@@ -1,161 +1,133 @@
-const API_URL = 'http://localhost:3000/api/tickets';
+document.addEventListener('DOMContentLoaded', () => {
 
-const token = localStorage.getItem('token')
-const form = document.getElementById('ticketForm');
-const ticketDiv = document.getElementById('tickets');
-
-
-let ticketsGlobal = [];
-let filtroActual = 'todos';
-
-//logout
-function logout() {
-    localStorage.removeItem('token');
-    window.location.href = 'login.html';
-}
-
-//OBetener usuario
-function obetenerUsuario() {
     const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = 'login.html';
+        return;
+    }
 
-    if (!token) return null;
+    async function obtenerTickets() {
+        try {
+            const res = await fetch('http://localhost:3000/api/tickets', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
 
-    const payload = token.split('.')[1];
-    const decoded = JSON.parse(atob(payload));
+            if (!res.ok) throw new Error('Error al obtener tickets');
 
-    return decoded;
-}
-
-//Obtener tickets
-async function obtenerTickets() {
-    const res = await fetch(API_URL, {
-        headers: {
-            'Authorization': `Bearer ${token}`
+            const tickets = await res.json();
+            mostrarTickets(tickets);
+        } catch (err) {
+            alert(err.message);
         }
-    });
-    const data = await res.json();
-
-    ticketsGlobal = data;
-    mostrarTickets();
-}
-
-function mostrarUsuario() {
-    const user = obetenerUsuario();
-
-    if (user) {
-        document.getElementById('usuarioActivo').innerText = `Usuario: ${user.username}`;
-    }
-}
-
-function mostrarTickets() {
-    ticketDiv.innerHTML = '';
-
-    let ticketsFiltrados = ticketsGlobal;
-
-    if (filtroActual !== 'todos') {
-        ticketsFiltrados = ticketsGlobal.filter(t => t.estado === filtroActual);
     }
 
-    ticketsFiltrados.forEach(ticket => {
-        const estadoClase = ticket.estado === "Pendiente" ? "pendiente" : "resuelto";
+    function mostrarTickets(tickets) {
+        const lista = document.getElementById('tickets');
+        if (!lista) return;
+        lista.innerHTML = '';
 
-        ticketDiv.innerHTML += `
-            <div class="ticket ${estadoClase}">
+        tickets.forEach(ticket => {
+            const div = document.createElement('div');
+            div.className = 'ticket';
+            div.style.borderLeft = ticket.estado === 'Resuelto' ? '5px solid green' : '5px solid orange';
+
+            div.innerHTML = `
                 <h3>${ticket.titulo}</h3>
                 <p>${ticket.descripcion}</p>
-                <p><strong>Técnico:</strong> ${ticket.tecnico || "Sin asignar"}</p>
-                <strong>${ticket.estado}</strong>
-
-                ${ticket.estado === "Pendiente" ?
-                `<button onclick="resolverTicket(${ticket.id})">Resolver</button>`
-                : ""}
-
+                <p>Técnico: ${ticket.tecnico || 'No asignado'}</p>
+                <p>Estado: ${ticket.estado}</p>
+                <button onclick="resolverTicket(${ticket.id})">Resolver</button>
                 <button onclick="eliminarTicket(${ticket.id})">Eliminar</button>
-            </div>
-        `;
-    });
-}
+            `;
 
-//cargar tecnicos
-async function cargarTecnicos() {
-    const res = await fetch('http://localhost:3000/api/tecnicos', {
-        headers: {
-            'Authorization': `Bearer ${token}`
+            lista.appendChild(div);
+        });
+    }
+
+    window.crearTicket = async (e) => {
+        e.preventDefault();
+
+        const titulo = document.getElementById('titulo').value;
+        const descripcion = document.getElementById('descripcion').value;
+        const tecnico_id = document.getElementById('tecnico').value;
+
+        try {
+            const res = await fetch('http://localhost:3000/api/tickets', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ titulo, descripcion, tecnico_id })
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Error al crear ticket');
+
+            obtenerTickets();
+            e.target.reset();
+        } catch (err) {
+            alert(err.message);
         }
-    });
-    const data = await res.json();
+    };
 
-    const select = document.getElementById('tecnico');
+    window.resolverTicket = async (id) => {
+        try {
+            const res = await fetch(`http://localhost:3000/api/tickets/${id}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
 
-    data.forEach(t => {
-        select.innerHTML += `<option value="${t.id}">${t.nombre}</option>`;
-    });
-}
-
-
-
-//funcion filtar
-function filtrar(tipo) {
-    filtroActual = tipo;
-    mostrarTickets();
-}
-
-//Crear tickets
-form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const titulo = document.getElementById('titulo').value;
-    const descripcion = document.getElementById('descripcion').value;
-    const tecnico_id = document.getElementById('tecnico').value;
-
-    await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ titulo, descripcion, tecnico_id })
-    });
-
-    form.reset();
-    obtenerTickets();
-})
-
-//funcion para resolver
-async function resolverTicket(id) {
-    await fetch(`${API_URL}/${id}`, {
-        method: 'PUT',
-        headers: {
-            'Authorization': `Bearer ${token}`
+            if (!res.ok) throw new Error('Error al resolver ticket');
+            obtenerTickets();
+        } catch (err) {
+            alert(err.message);
         }
-    });
+    };
 
-    obtenerTickets();
-}
+    window.eliminarTicket = async (id) => {
+        if (!confirm('¿Seguro que deseas eliminar este ticket?')) return;
 
-//funcion eliminar
-async function eliminarTicket(id) {
-    await fetch(`${API_URL}/${id}`, {
-        method: 'DELETE',
-        headers: {
-            'Authorization': `Bearer ${token}`
+        try {
+            const res = await fetch(`http://localhost:3000/api/tickets/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!res.ok) throw new Error('Error al eliminar ticket');
+            obtenerTickets();
+        } catch (err) {
+            alert(err.message);
         }
-    });
+    };
 
-    obtenerTickets();
-}
+    async function cargarTecnicos() {
+        try {
+            const res = await fetch('http://localhost:3000/api/tecnicos');
+            if (!res.ok) throw new Error('Error al cargar técnicos');
 
-function bloquearAtras() {
-    window.history.pushState(null, null, window.location.href);
+            const tecnicos = await res.json();
+            const select = document.getElementById('tecnico');
+            if (!select) return;
 
-    window.onpopstate = function () {
+            tecnicos.forEach(t => {
+                const option = document.createElement('option');
+                option.value = t.id;
+                option.textContent = t.nombre;
+                select.appendChild(option);
+            });
+        } catch (err) {
+            alert(err.message);
+        }
+    }
+
+    window.logout = () => {
+        localStorage.removeItem('token');
         window.location.href = 'login.html';
     };
-}
 
+    document.getElementById('ticketForm')?.addEventListener('submit', crearTicket);
 
-//cargar al inicio
-cargarTecnicos();
-mostrarUsuario();
-obtenerTickets();
-bloquearAtras();
+    obtenerTickets();
+    cargarTecnicos();
+});

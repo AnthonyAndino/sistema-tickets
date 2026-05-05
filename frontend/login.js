@@ -1,22 +1,32 @@
-async function login() {
+document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
-    const error = document.getElementById('error');
+    const errorDiv = document.getElementById('error');
 
-    error.innerHTML = "";
+    if (errorDiv) errorDiv.textContent = '';
 
-    const res = await fetch('http://localhost:3000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-    });
+    try {
+        const res = await fetch('http://localhost:3000/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
 
-    const data = await res.json();
+        const data = await res.json();
 
-    if (data.token) {
+        if (!res.ok) {
+            throw new Error(data.error || 'Error al iniciar sesión');
+        }
+
         localStorage.setItem('token', data.token);
         window.location.href = 'index.html';
-    } else {
-        error.innerHTML = "Usuario o contraseña incorrectos";
+    } catch (err) {
+        if (errorDiv) {
+            errorDiv.textContent = err.message;
+        } else {
+            alert(err.message);
+        }
     }
-}
+});
