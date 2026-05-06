@@ -1,7 +1,260 @@
+/* Base styles */
 body {
-    font-family: Arial;
+    font-family: Arial, sans-serif;
     background: #f4f6f9;
     margin: 0;
+    padding: 0;
+}
+
+header {
+    background: #1e293b;
+    color: white;
+    padding: 15px 20px;
+    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    flex: 1;
+}
+
+header p {
+    margin: 0 15px;
+    font-size: 0.9rem;
+}
+
+header button {
+    background: #dc2626;
+    padding: 8px 16px;
+}
+
+main {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Form container */
+.form-container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.form-container input,
+.form-container textarea,
+.form-container select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+.form-container button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    background: #2563eb;
+    color: white;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.form-container button:hover {
+    background: #1d4ed8;
+}
+
+.form-container button:disabled {
+    background: #93c5fd;
+    cursor: not-allowed;
+}
+
+/* Tickets grid */
+.tickets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+}
+
+.ticket {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    border-left: 5px solid #ccc;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.ticket h3 {
+    margin-top: 0;
+    color: #1e293b;
+}
+
+.ticket p {
+    margin: 5px 0;
+    color: #475569;
+    font-size: 0.9rem;
+}
+
+.ticket button {
+    margin-right: 8px;
+    margin-top: 10px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+}
+
+.filtros {
+    margin-bottom: 15px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filtros button {
+    background: #64748b;
+    padding: 8px 16px;
+}
+
+.filtros button:hover {
+    background: #475569;
+}
+
+/* Login styles */
+body.login-body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #0f172a;
+    font-family: Arial, sans-serif;
+}
+
+.login-container {
+    background: #1e293b;
+    padding: 40px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 300px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    text-align: center;
+}
+
+.login-container h2 {
+    color: white;
+    margin-bottom: 20px;
+}
+
+.login-container input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 6px;
+    outline: none;
+    font-size: 1rem;
+}
+
+.login-container button {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 6px;
+    background: #2563eb;
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.login-container button:hover {
+    background: #1d4ed8;
+    transform: scale(1.02);
+}
+
+#error {
+    color: #fbbf24;
+    margin-top: 10px;
+    font-size: 0.9rem;
+}
+
+/* Toast messages */
+.toast {
+    padding: 15px 20px;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.toast-info { background: #2196F3; }
+.toast-exito { background: #4CAF50; }
+.toast-error { background: #f44336; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    header h1 {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+    }
+    
+    header p {
+        margin: 5px 0;
+    }
+    
+    main {
+        padding: 10px;
+    }
+    
+    .tickets-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .ticket {
+        padding: 12px;
+    }
+    
+    .form-container {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    header h1 {
+        font-size: 1rem;
+    }
+    
+    .ticket button {
+        display: block;
+        width: 100%;
+        margin: 5px 0;
+    }
+    
+    .filtros {
+        flex-direction: column;
+    }
+    
+    .filtros button {
+        width: 100%;
+    }
 }
 
 header {
