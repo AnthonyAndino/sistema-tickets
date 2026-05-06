@@ -25,6 +25,12 @@
             <form id="ticketForm">
                 <input type="text" id="titulo" placeholder="Titulo" required>
                 <textarea id="descripcion" placeholder="Descripcion" required></textarea>
+                <select id="prioridad">
+                    <option value="Baja">Baja</option>
+                    <option value="Media" selected>Media</option>
+                    <option value="Alta">Alta</option>
+                    <option value="Urgente">Urgente</option>
+                </select>
                 <div id="asignarJefe" style="display:none;">
                     <label for="tecnico">Asignar a tecnico:</label>
                     <select id="tecnico">
