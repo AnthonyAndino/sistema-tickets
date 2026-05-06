@@ -296,21 +296,43 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.filtrar = (estado) => {
+        document.getElementById('filtroEstado').value = estado === 'todos' ? '' : estado;
+        aplicarFiltros();
+    };
+
+    window.aplicarFiltros = async () => {
         const token = localStorage.getItem('token');
         mostrarLoading(true);
         
-        fetch('http://localhost:3000/api/tickets', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        })
-        .then(res => res.json())
-        .then(tickets => {
-            if (estado !== 'todos') {
-                tickets = tickets.filter(t => t.estado === estado);
-            }
+        const estado = document.getElementById('filtroEstado').value;
+        const prioridad = document.getElementById('filtroPrioridad').value;
+        const busqueda = document.getElementById('busqueda').value;
+        
+        let url = 'http://localhost:3000/api/tickets';
+        const params = new URLSearchParams();
+        if (estado) params.append('estado', estado);
+        if (prioridad) params.append('prioridad', prioridad);
+        if (busqueda) params.append('busqueda', busqueda);
+        if (params.toString()) url += '?' + params.toString();
+        
+        try {
+            const res = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const tickets = await res.json();
             mostrarTickets(tickets);
-        })
-        .catch(err => mostrarMensaje(err.message, "error"))
-        .finally(() => mostrarLoading(false));
+        } catch (err) {
+            mostrarMensaje(err.message, "error");
+        } finally {
+            mostrarLoading(false);
+        }
+    };
+
+    window.limpiarFiltros = () => {
+        document.getElementById('busqueda').value = '';
+        document.getElementById('filtroEstado').value = '';
+        document.getElementById('filtroPrioridad').value = '';
+        obtenerTickets();
     };
 
     document.getElementById('ticketForm')?.addEventListener('submit', crearTicket);

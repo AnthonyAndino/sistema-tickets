@@ -32,24 +32,57 @@ router.post('/', verificarToken, (req, res) => {
     });
 });
 
-// Obtener tickets (admin ve todos, usuario ve solo los suyos)
+// Obtener tickets con filtros (admin ve todos, usuario ve solo los suyos)
 router.get('/', verificarToken, (req, res) => {
     let sql = `SELECT tickets.*, tecnicos.nombre AS tecnico, usuarios.username 
                FROM tickets 
                LEFT JOIN tecnicos ON tickets.tecnico_id = tecnicos.id
                LEFT JOIN usuarios ON tickets.user_id = usuarios.id`;
     let params = [];
+    let conditions = [];
     
+    // Si no es admin, solo sus tickets
     if (req.user.rol !== 'admin') {
-        sql += ' WHERE tickets.user_id = ?';
+        conditions.push('tickets.user_id = ?');
         params.push(req.user.id);
     }
+    
+    // Filtro por estado
+    if (req.query.estado) {
+        conditions.push('tickets.estado = ?');
+        params.push(req.query.estado);
+    }
+    
+    // Filtro por tecnico
+    if (req.query.tecnico_id) {
+        conditions.push('tickets.tecnico_id = ?');
+        params.push(req.query.tecnico_id);
+    }
+    
+    // Filtro por prioridad
+    if (req.query.prioridad) {
+        conditions.push('tickets.prioridad = ?');
+        params.push(req.query.prioridad);
+    }
+    
+    // Búsqueda por título o descripción
+    if (req.query.busqueda) {
+        conditions.push('(tickets.titulo LIKE ? OR tickets.descripcion LIKE ?)');
+        params.push(`%${req.query.busqueda}%`, `%${req.query.busqueda}%`);
+    }
+    
+    if (conditions.length > 0) {
+        sql += ' WHERE ' + conditions.join(' AND ');
+    }
+    
+    sql += ' ORDER BY FIELD(prioridad, "Urgente", "Alta", "Media", "Baja")';
     
     db.query(sql, params, (err, results) => {
         if (err) return res.status(500).json(err);
 
         res.json(results);
     });
+});
 });
 
 // Editar ticket (solo admin)
