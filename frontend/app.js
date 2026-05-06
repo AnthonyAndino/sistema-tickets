@@ -10,10 +10,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const rol = localStorage.getItem('rol');
     document.getElementById('usuarioActivo').textContent = `Usuario: ${username} (${rol})`;
 
-    // Ocultar selección de técnico para usuarios regulares
-    if (rol !== 'admin') {
-        document.getElementById('tecnico').style.display = 'none';
-        document.querySelector('label[for="tecnico"]')?.style.setProperty('display', 'none');
+    // Mostrar asignación de tecnico solo para admin
+    if (rol === 'admin') {
+        document.getElementById('asignarJefe').style.display = 'block';
     }
 
     async function obtenerTickets() {
