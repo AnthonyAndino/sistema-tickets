@@ -4,9 +4,9 @@ const db = require('../db');
 const verificarToken = require('../middleware/authMiddleware');
 const { verificarRol } = require('../middleware/roleMiddleware');
 
-// Crear ticket (admin y usuario)
+// Crear ticket (admin y usuario) - se asigna automaticamente al jefe
 router.post('/', verificarToken, (req, res) => {
-    const { titulo, descripcion, tecnico_id } = req.body;
+    const { titulo, descripcion } = req.body;
 
     if (!titulo) {
         return res.status(400).json({ error: 'El titulo es obligatoio ' });
@@ -16,21 +16,19 @@ router.post('/', verificarToken, (req, res) => {
         return res.status(400).json({ error: 'El titulo debe ser texto y maximo 255 caracteres' });
     }
 
-    // Solo admin puede asignar tecnico
-    let finalTecnicoId = null;
-    if (req.user.rol === 'admin' && tecnico_id) {
-        if (!Number.isInteger(Number(tecnico_id)) || tecnico_id <= 0) {
-            return res.status(400).json({ error: 'El ID del tecnico debe ser un numero valido' });
-        }
-        finalTecnicoId = tecnico_id;
-    }
-
-    const sql = 'INSERT INTO tickets (titulo, descripcion, estado, tecnico_id, user_id) VALUES (?, ?, "Pendiente", ?, ?)';
-
-    db.query(sql, [titulo, descripcion, finalTecnicoId, req.user.id], (err, result) => {
+    // Obtener el tecnico jefe automaticamente
+    db.query('SELECT id FROM tecnicos WHERE es_jefe = TRUE LIMIT 1', (err, results) => {
         if (err) return res.status(500).json(err);
+        
+        const jefeId = results.length > 0 ? results[0].id : null;
+        
+        const sql = 'INSERT INTO tickets (titulo, descripcion, estado, tecnico_id, user_id) VALUES (?, ?, "Pendiente", ?, ?)';
 
-        res.json({ mensaje: 'Ticket creado correctamente' });
+        db.query(sql, [titulo, descripcion, jefeId, req.user.id], (err, result) => {
+            if (err) return res.status(500).json(err);
+
+            res.json({ mensaje: 'Ticket creado y asignado al jefe' });
+        });
     });
 });
 
