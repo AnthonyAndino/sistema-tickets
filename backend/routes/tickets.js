@@ -4,8 +4,8 @@ const db = require('../db');
 const verificarToken = require('../middleware/authMiddleware');
 const { verificarRol } = require('../middleware/roleMiddleware');
 
-// Crear ticket (solo admin)
-router.post('/', verificarToken, verificarRol('admin'), (req, res) => {
+// Crear ticket (admin y usuario)
+router.post('/', verificarToken, (req, res) => {
     const { titulo, descripcion, tecnico_id } = req.body;
 
     if (!titulo) {
@@ -39,8 +39,8 @@ router.get('/', verificarToken, (req, res) => {
         });
 });
 
-//cambiar estdo de ticket (solo admin)
-router.put('/:id', verificarToken, verificarRol('admin'), (req, res) => {
+//cambiar estdo de ticket (admin y usuario)
+router.put('/:id', verificarToken, (req, res) => {
     const { id } = req.params;
 
     const sql = 'UPDATE tickets SET estado = "Resuelto" WHERE id = ?';

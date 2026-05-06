@@ -6,11 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    const rol = localStorage.getItem('rol');
-    if (rol !== 'admin') {
-        document.getElementById('ticketForm')?.style.setProperty('display', 'none');
-    }
-
     async function obtenerTickets() {
         try {
             const res = await fetch('http://localhost:3000/api/tickets', {
