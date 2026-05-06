@@ -20,27 +20,34 @@ router.post('/', verificarToken, (req, res) => {
         return res.status(400).json({ error: 'El ID del tecnico debe ser un numero valido' });
     }
 
-    const sql = 'INSERT INTO tickets (titulo, descripcion, estado, tecnico_id) VALUES (?, ?, "Pendiente", ?)';
+    const sql = 'INSERT INTO tickets (titulo, descripcion, estado, tecnico_id, user_id) VALUES (?, ?, "Pendiente", ?, ?)';
 
-    db.query(sql, [titulo, descripcion, tecnico_id], (err, result) => {
+    db.query(sql, [titulo, descripcion, tecnico_id, req.user.id], (err, result) => {
         if (err) return res.status(500).json(err);
 
         res.json({ mensaje: 'Ticket creado correctamente' });
     });
 });
 
-// Obtener tickets (admin y usuario)
+// Obtener tickets (admin ve todos, usuario ve solo los suyos)
 router.get('/', verificarToken, (req, res) => {
-    db.query('SELECT tickets.*, tecnicos.nombre AS tecnico FROM tickets LEFT JOIN tecnicos ON tickets.tecnico_id = tecnicos.id',
-        (err, results) => {
-            if (err) return res.status(500).json(err);
+    let sql = 'SELECT tickets.*, tecnicos.nombre AS tecnico FROM tickets LEFT JOIN tecnicos ON tickets.tecnico_id = tecnicos.id';
+    let params = [];
+    
+    if (req.user.rol !== 'admin') {
+        sql += ' WHERE tickets.user_id = ?';
+        params.push(req.user.id);
+    }
+    
+    db.query(sql, params, (err, results) => {
+        if (err) return res.status(500).json(err);
 
-            res.json(results);
-        });
+        res.json(results);
+    });
 });
 
-//cambiar estdo de ticket (admin y usuario)
-router.put('/:id', verificarToken, (req, res) => {
+//cambiar estdo de ticket (solo admin)
+router.put('/:id', verificarToken, verificarRol('admin'), (req, res) => {
     const { id } = req.params;
 
     const sql = 'UPDATE tickets SET estado = "Resuelto" WHERE id = ?';
