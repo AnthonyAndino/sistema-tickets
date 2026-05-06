@@ -1,27 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Tickets</title>
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-
     <header>
         <h1>Sistema de Tickets - Soporte TIC</h1>
         <p id="usuarioActivo"></p>
-
-        <button onclick="logout()">Cerrar sesion</button>
+        <button onclick="toggleDarkMode()">🌙</button>
+        <button onclick="logout()">Cerrar sesión</button>
     </header>
 
     <main>
-
         <section class="form-container">
             <h2>Crear Ticket</h2>
-
             <form id="ticketForm">
                 <input type="text" id="titulo" placeholder="Titulo" required>
                 <textarea id="descripcion" placeholder="Descripcion" required></textarea>
@@ -43,7 +38,6 @@
 
         <section>
             <h2>Tickets</h2>
-
             <div class="filtros">
                 <input type="text" id="busqueda" placeholder="Buscar tickets..." style="padding:8px; border:1px solid #ddd; border-radius:5px;">
                 <select id="filtroEstado">
@@ -64,8 +58,6 @@
 
             <div id="tickets" class="tickets-grid"></div>
         </section>
-
-    </main>
 
         <div id="ticketDetalle" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px; z-index:1001; border-radius:8px;"></div>
         <div id="overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;" onclick="cerrarDetalle()"></div>
@@ -95,13 +87,14 @@
             <button onclick="agregarComentario()">Agregar</button>
             <button onclick="cerrarComentarios()">Cerrar</button>
         </div>
+    </main>
 
     <div id="mensajes" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="messages.js"></script>
     <script src="notifications.js"></script>
+    <script src="darkmode.js"></script>
     <script src="app.js"></script>
     <script src="authCheck.js"></script>
-
 </body>
 </html>
