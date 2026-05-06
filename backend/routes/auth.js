@@ -4,6 +4,7 @@ const db = require('../db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+require('dotenv').config({ path: '../.env' });
 const SECRET = process.env.JWT_SECRET;
 
 //registro
