@@ -45,9 +45,21 @@
             <h2>Tickets</h2>
 
             <div class="filtros">
-                <button onclick="filtrar('todos')">Todos</button>
-                <button onclick="filtrar('Pendiente')">Pendientes</button>
-                <button onclick="filtrar('Resuelto')">Resueltos</button>
+                <input type="text" id="busqueda" placeholder="Buscar tickets..." style="padding:8px; border:1px solid #ddd; border-radius:5px;">
+                <select id="filtroEstado">
+                    <option value="">Todos los estados</option>
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="Resuelto">Resuelto</option>
+                </select>
+                <select id="filtroPrioridad">
+                    <option value="">Todas las prioridades</option>
+                    <option value="Urgente">Urgente</option>
+                    <option value="Alta">Alta</option>
+                    <option value="Media">Media</option>
+                    <option value="Baja">Baja</option>
+                </select>
+                <button onclick="aplicarFiltros()">Filtrar</button>
+                <button onclick="limpiarFiltros()">Limpiar</button>
             </div>
 
             <div id="tickets" class="tickets-grid"></div>
