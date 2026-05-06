@@ -52,27 +52,49 @@ router.get('/', verificarToken, (req, res) => {
     });
 });
 
-//cambiar estdo de ticket y asignar tecnico (solo admin)
+// Editar ticket (solo admin)
 router.put('/:id', verificarToken, verificarRol('admin'), (req, res) => {
     const { id } = req.params;
-    const { estado, tecnico_id } = req.body;
+    const { titulo, descripcion, estado, tecnico_id } = req.body;
 
-    let sql = 'UPDATE tickets SET estado = ?';
-    let params = [estado || 'Resuelto'];
+    let sql = 'UPDATE tickets SET';
+    let params = [];
+    
+    if (titulo !== undefined && titulo !== '') {
+        sql += ' titulo = ?,';
+        params.push(titulo);
+    }
+    
+    if (descripcion !== undefined && descripcion !== '') {
+        sql += ' descripcion = ?,';
+        params.push(descripcion);
+    }
+    
+    if (estado) {
+        sql += ' estado = ?,';
+        params.push(estado);
+    }
     
     if (tecnico_id !== undefined) {
-        sql += ', tecnico_id = ?';
+        sql += ' tecnico_id = ?,';
         params.push(tecnico_id || null);
     }
     
+    // Remover última coma
+    sql = sql.replace(/,$/, '');
     sql += ' WHERE id = ?';
     params.push(id);
+
+    if (params.length === 1) {
+        return res.status(400).json({ error: 'No hay campos para actualizar' });
+    }
 
     db.query(sql, params, (err, result) => {
         if (err) return res.status(500).json(err);
 
         res.json({ mensaje: 'Ticket actualizado' });
     });
+});
 });
 
 //eliminar ticket (solo admin)

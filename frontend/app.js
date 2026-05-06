@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 acciones = `
                     <button onclick="event.stopPropagation(); resolverTicket(${ticket.id})">Resolver</button>
                     <button onclick="event.stopPropagation(); eliminarTicket(${ticket.id})">Eliminar</button>
+                    <button onclick="event.stopPropagation(); editarTicket(${JSON.stringify(ticket).replace(/"/g, '&quot;')})">Editar</button>
                 `;
             }
 
@@ -103,6 +104,66 @@ document.addEventListener('DOMContentLoaded', () => {
                     select.appendChild(option);
                 });
             });
+    };
+
+    window.editarTicket = (ticket) => {
+        const editForm = document.getElementById('editarTicket');
+        if (!editForm) return;
+
+        document.getElementById('editTitulo').value = ticket.titulo;
+        document.getElementById('editDescripcion').value = ticket.descripcion;
+        document.getElementById('editEstado').value = ticket.estado;
+
+        // Cargar técnicos
+        fetch('http://localhost:3000/api/tecnicos')
+            .then(res => res.json())
+            .then(tecnicos => {
+                const select = document.getElementById('editTecnico');
+                select.innerHTML = '<option value="">Seleccionar tecnico</option>';
+                tecnicos.forEach(t => {
+                    const option = document.createElement('option');
+                    option.value = t.id;
+                    option.textContent = t.nombre;
+                    if (t.id == ticket.tecnico_id) option.selected = true;
+                    select.appendChild(option);
+                });
+            });
+
+        editForm.style.display = 'block';
+        document.getElementById('overlay').style.display = 'block';
+
+        // Guardar cambios
+        document.getElementById('editForm').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const titulo = document.getElementById('editTitulo').value;
+            const descripcion = document.getElementById('editDescripcion').value;
+            const estado = document.getElementById('editEstado').value;
+            const tecnico_id = document.getElementById('editTecnico').value;
+
+            try {
+                const res = await fetch(`http://localhost:3000/api/tickets/${ticket.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ titulo, descripcion, estado, tecnico_id })
+                });
+
+                if (!res.ok) throw new Error('Error al editar ticket');
+                
+                cerrarEdicion();
+                obtenerTickets();
+            } catch (err) {
+                alert(err.message);
+            }
+        };
+    };
+
+    window.cerrarEdicion = () => {
+        document.getElementById('editarTicket').style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
     };
 
     window.asignarTecnico = async (ticketId) => {
