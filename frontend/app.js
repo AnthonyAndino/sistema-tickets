@@ -6,6 +6,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    const username = localStorage.getItem('username');
+    const rol = localStorage.getItem('rol');
+    document.getElementById('usuarioActivo').textContent = `Usuario: ${username} (${rol})`;
+
+    // Ocultar selección de técnico para usuarios regulares
+    if (rol !== 'admin') {
+        document.getElementById('tecnico').style.display = 'none';
+        document.querySelector('label[for="tecnico"]')?.style.setProperty('display', 'none');
+    }
+
     async function obtenerTickets() {
         try {
             const res = await fetch('http://localhost:3000/api/tickets', {
@@ -44,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
             div.innerHTML = `
                 <h3>${ticket.titulo}</h3>
                 <p>${ticket.descripcion}</p>
+                <p>Usuario: ${ticket.username || 'No asignado'}</p>
                 <p>Técnico: ${ticket.tecnico || 'No asignado'}</p>
                 <p>Estado: ${ticket.estado}</p>
                 ${acciones}
@@ -58,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const titulo = document.getElementById('titulo').value;
         const descripcion = document.getElementById('descripcion').value;
-        const tecnico_id = document.getElementById('tecnico').value;
+        const tecnico_id = rol === 'admin' ? document.getElementById('tecnico').value : null;
 
         try {
             const res = await fetch('http://localhost:3000/api/tickets', {
