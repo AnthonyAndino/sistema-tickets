@@ -62,9 +62,9 @@ router.put('/:id', verificarToken, verificarRol('admin'), (req, res) => {
     let sql = 'UPDATE tickets SET estado = ?';
     let params = [estado || 'Resuelto'];
     
-    if (tecnico_id) {
+    if (tecnico_id !== undefined) {
         sql += ', tecnico_id = ?';
-        params.push(tecnico_id);
+        params.push(tecnico_id || null);
     }
     
     sql += ' WHERE id = ?';

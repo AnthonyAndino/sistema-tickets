@@ -42,12 +42,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const div = document.createElement('div');
             div.className = 'ticket';
             div.style.borderLeft = ticket.estado === 'Resuelto' ? '5px solid green' : '5px solid orange';
+            div.style.cursor = rol === 'admin' ? 'pointer' : 'default';
+            
+            // Click en ticket para admin
+            if (rol === 'admin') {
+                div.onclick = () => mostrarDetalleTicket(ticket);
+            }
 
             let acciones = '';
             if (rol === 'admin') {
                 acciones = `
-                    <button onclick="resolverTicket(${ticket.id})">Resolver</button>
-                    <button onclick="eliminarTicket(${ticket.id})">Eliminar</button>
+                    <button onclick="event.stopPropagation(); resolverTicket(${ticket.id})">Resolver</button>
+                    <button onclick="event.stopPropagation(); eliminarTicket(${ticket.id})">Eliminar</button>
                 `;
             }
 
@@ -63,6 +69,74 @@ document.addEventListener('DOMContentLoaded', () => {
             lista.appendChild(div);
         });
     }
+
+    window.mostrarDetalleTicket = (ticket) => {
+        const detalle = document.getElementById('ticketDetalle');
+        if (!detalle) return;
+
+        const selectTecnico = document.getElementById('tecnicoAsignar')?.innerHTML || '';
+        
+        detalle.innerHTML = `
+            <div class="detalle-contenido">
+                <h3>${ticket.titulo}</h3>
+                <p><strong>Descripción:</strong> ${ticket.descripcion}</p>
+                <p><strong>Usuario:</strong> ${ticket.username || 'No asignado'}</p>
+                <p><strong>Estado:</strong> ${ticket.estado}</p>
+                <label>Asignar Técnico:</label>
+                <select id="tecnicoAsignar">
+                    <option value="">Seleccionar tecnico</option>
+                </select>
+                <button onclick="asignarTecnico(${ticket.id})">Asignar</button>
+                <button onclick="cerrarDetalle()">Cerrar</button>
+            </div>
+        `;
+        detalle.style.display = 'block';
+        
+        // Cargar técnicos y seleccionar el actual
+        fetch('http://localhost:3000/api/tecnicos')
+            .then(res => res.json())
+            .then(tecnicos => {
+                const select = document.getElementById('tecnicoAsignar');
+                tecnicos.forEach(t => {
+                    const option = document.createElement('option');
+                    option.value = t.id;
+                    option.textContent = t.nombre;
+                    if (t.id == ticket.tecnico_id) option.selected = true;
+                    select.appendChild(option);
+                });
+            });
+    };
+
+    window.asignarTecnico = async (ticketId) => {
+        const tecnico_id = document.getElementById('tecnicoAsignar').value;
+        if (!tecnico_id) {
+            alert('Selecciona un técnico');
+            return;
+        }
+
+        try {
+            const res = await fetch(`http://localhost:3000/api/tickets/${ticketId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ tecnico_id })
+            });
+
+            if (!res.ok) throw new Error('Error al asignar técnico');
+            
+            cerrarDetalle();
+            obtenerTickets();
+        } catch (err) {
+            alert(err.message);
+        }
+    };
+
+    window.cerrarDetalle = () => {
+        const detalle = document.getElementById('ticketDetalle');
+        if (detalle) detalle.style.display = 'none';
+    };
 
     window.crearTicket = async (e) => {
         e.preventDefault();
