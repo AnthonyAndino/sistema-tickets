@@ -26,18 +26,27 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!lista) return;
         lista.innerHTML = '';
 
+        const rol = localStorage.getItem('rol');
+
         tickets.forEach(ticket => {
             const div = document.createElement('div');
             div.className = 'ticket';
             div.style.borderLeft = ticket.estado === 'Resuelto' ? '5px solid green' : '5px solid orange';
+
+            let acciones = '';
+            if (rol === 'admin') {
+                acciones = `
+                    <button onclick="resolverTicket(${ticket.id})">Resolver</button>
+                    <button onclick="eliminarTicket(${ticket.id})">Eliminar</button>
+                `;
+            }
 
             div.innerHTML = `
                 <h3>${ticket.titulo}</h3>
                 <p>${ticket.descripcion}</p>
                 <p>Técnico: ${ticket.tecnico || 'No asignado'}</p>
                 <p>Estado: ${ticket.estado}</p>
-                <button onclick="resolverTicket(${ticket.id})">Resolver</button>
-                <button onclick="eliminarTicket(${ticket.id})">Eliminar</button>
+                ${acciones}
             `;
 
             lista.appendChild(div);
@@ -123,6 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.logout = () => {
         localStorage.removeItem('token');
+        localStorage.removeItem('rol');
         window.location.href = 'login.html';
     };
 
