@@ -16,7 +16,10 @@ const ticketRoutes = require('./routes/tickets');
 app.use('/api/tickets', ticketRoutes);
 
 const tecnicosRoutes = require('./routes/tecnicos');
+const statsRoutes = require('./routes/stats');
+
 app.use('/api/tecnicos', tecnicosRoutes);
+app.use('/api/stats', statsRoutes);
 
 app.use(errorHandler);
 
