@@ -3,6 +3,7 @@ require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') }
 const express = require('express');
 const cors = require('cors');
 const errorHandler = require('./middleware/errorMiddleware');
+const { initWebSocket } = require('./websocket');
 
 const app = express();
 
@@ -20,6 +21,8 @@ app.use('/api/tecnicos', tecnicosRoutes);
 
 app.use(errorHandler);
 
-app.listen(3000, () => {
+const server = app.listen(3000, () => {
     console.log('Servidor corriendo en http://localhost:3000');
 });
+
+initWebSocket(server);
