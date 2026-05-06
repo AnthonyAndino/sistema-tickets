@@ -16,13 +16,18 @@ router.post('/', verificarToken, (req, res) => {
         return res.status(400).json({ error: 'El titulo debe ser texto y maximo 255 caracteres' });
     }
 
-    if (tecnico_id && (!Number.isInteger(Number(tecnico_id)) || tecnico_id <= 0)) {
-        return res.status(400).json({ error: 'El ID del tecnico debe ser un numero valido' });
+    // Solo admin puede asignar tecnico
+    let finalTecnicoId = null;
+    if (req.user.rol === 'admin' && tecnico_id) {
+        if (!Number.isInteger(Number(tecnico_id)) || tecnico_id <= 0) {
+            return res.status(400).json({ error: 'El ID del tecnico debe ser un numero valido' });
+        }
+        finalTecnicoId = tecnico_id;
     }
 
     const sql = 'INSERT INTO tickets (titulo, descripcion, estado, tecnico_id, user_id) VALUES (?, ?, "Pendiente", ?, ?)';
 
-    db.query(sql, [titulo, descripcion, tecnico_id, req.user.id], (err, result) => {
+    db.query(sql, [titulo, descripcion, finalTecnicoId, req.user.id], (err, result) => {
         if (err) return res.status(500).json(err);
 
         res.json({ mensaje: 'Ticket creado correctamente' });
@@ -31,7 +36,10 @@ router.post('/', verificarToken, (req, res) => {
 
 // Obtener tickets (admin ve todos, usuario ve solo los suyos)
 router.get('/', verificarToken, (req, res) => {
-    let sql = 'SELECT tickets.*, tecnicos.nombre AS tecnico FROM tickets LEFT JOIN tecnicos ON tickets.tecnico_id = tecnicos.id';
+    let sql = `SELECT tickets.*, tecnicos.nombre AS tecnico, usuarios.username 
+               FROM tickets 
+               LEFT JOIN tecnicos ON tickets.tecnico_id = tecnicos.id
+               LEFT JOIN usuarios ON tickets.user_id = usuarios.id`;
     let params = [];
     
     if (req.user.rol !== 'admin') {
@@ -46,13 +54,23 @@ router.get('/', verificarToken, (req, res) => {
     });
 });
 
-//cambiar estdo de ticket (solo admin)
+//cambiar estdo de ticket y asignar tecnico (solo admin)
 router.put('/:id', verificarToken, verificarRol('admin'), (req, res) => {
     const { id } = req.params;
+    const { estado, tecnico_id } = req.body;
 
-    const sql = 'UPDATE tickets SET estado = "Resuelto" WHERE id = ?';
+    let sql = 'UPDATE tickets SET estado = ?';
+    let params = [estado || 'Resuelto'];
+    
+    if (tecnico_id !== undefined) {
+        sql += ', tecnico_id = ?';
+        params.push(tecnico_id || null);
+    }
+    
+    sql += ' WHERE id = ?';
+    params.push(id);
 
-    db.query(sql, [id], (err, result) => {
+    db.query(sql, params, (err, result) => {
         if (err) return res.status(500).json(err);
 
         res.json({ mensaje: 'Ticket actualizado' });

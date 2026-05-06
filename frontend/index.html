@@ -25,6 +25,7 @@
             <form id="ticketForm">
                 <input type="text" id="titulo" placeholder="Titulo" required>
                 <textarea id="descripcion" placeholder="Descripcion" required></textarea>
+                <label for="tecnico">Asignar tecnico (solo admin):</label>
                 <select id="tecnico">
                     <option value="">Seleccionar tecnico</option>
                 </select>
@@ -43,6 +44,8 @@
 
             <div id="tickets" class="tickets-grid"></div>
         </section>
+
+        <div id="ticketDetalle" style="display:none;"></div>
 
     </main>
 
