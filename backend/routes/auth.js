@@ -8,7 +8,7 @@ const SECRET = process.env.JWT_SECRET;
 
 //registro
 router.post('/register', async (req, res) => {
-    const { username, password } = req.body;
+    const { username, password, rol } = req.body;
 
     if (!username || !password) {
         return res.status(400).json({ error: 'Usuario y contraseña son obligatorios' });
@@ -22,10 +22,11 @@ router.post('/register', async (req, res) => {
     }
 
     const hashed = await bcrypt.hash(password, 10);
+    const userRole = rol === 'admin' ? 'admin' : 'usuario';
 
-    const sql = 'INSERT INTO usuarios (username, password) VALUES (?, ?)';
+    const sql = 'INSERT INTO usuarios (username, password, rol) VALUES (?, ?, ?)';
 
-    db.query(sql, [username, hashed], (err) => {
+    db.query(sql, [username, hashed, userRole], (err) => {
         if (err) return res.status(500).json(err);
 
         res.json({ mensaje: 'Usuario registrado' });
@@ -55,9 +56,9 @@ router.post('/login', (req, res) => {
             return res.status(400).json({ error: 'Constraseña incorrecta' });
         }
 
-        const token = jwt.sign({ id: user.id, username: user.username }, SECRET, { expiresIn: '2h' });
+        const token = jwt.sign({ id: user.id, username: user.username, rol: user.rol }, SECRET, { expiresIn: '2h' });
 
-        res.json({ token });
+        res.json({ token, username: user.username, rol: user.rol });
     });
 });
 

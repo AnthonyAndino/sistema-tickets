@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
-const verficarToken = require('../middleware/authMiddleware');
 const verificarToken = require('../middleware/authMiddleware');
+const { verificarRol } = require('../middleware/roleMiddleware');
 
-// Crear ticket
-router.post('/', verificarToken, (req, res) => {
+// Crear ticket (solo admin)
+router.post('/', verificarToken, verificarRol('admin'), (req, res) => {
     const { titulo, descripcion, tecnico_id } = req.body;
 
     if (!titulo) {
@@ -29,7 +29,7 @@ router.post('/', verificarToken, (req, res) => {
     });
 });
 
-// Obtener tickets
+// Obtener tickets (admin y usuario)
 router.get('/', verificarToken, (req, res) => {
     db.query('SELECT tickets.*, tecnicos.nombre AS tecnico FROM tickets LEFT JOIN tecnicos ON tickets.tecnico_id = tecnicos.id',
         (err, results) => {
@@ -39,8 +39,8 @@ router.get('/', verificarToken, (req, res) => {
         });
 });
 
-//cambiar estdo de ticket
-router.put('/:id', verificarToken, (req, res) => {
+//cambiar estdo de ticket (solo admin)
+router.put('/:id', verificarToken, verificarRol('admin'), (req, res) => {
     const { id } = req.params;
 
     const sql = 'UPDATE tickets SET estado = "Resuelto" WHERE id = ?';
@@ -52,8 +52,8 @@ router.put('/:id', verificarToken, (req, res) => {
     });
 });
 
-//eliminar ticket
-router.delete('/:id', verificarToken, (req, res) => {
+//eliminar ticket (solo admin)
+router.delete('/:id', verificarToken, verificarRol('admin'), (req, res) => {
     const { id } = req.params;
 
     const sql = 'DELETE FROM tickets WHERE id = ?';
