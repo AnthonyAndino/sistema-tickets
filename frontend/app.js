@@ -73,8 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const detalle = document.getElementById('ticketDetalle');
         if (!detalle) return;
 
-        const selectTecnico = document.getElementById('tecnicoAsignar')?.innerHTML || '';
-        
         detalle.innerHTML = `
             <div class="detalle-contenido">
                 <h3>${ticket.titulo}</h3>
@@ -90,6 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
         detalle.style.display = 'block';
+        document.getElementById('overlay').style.display = 'block';
         
         // Cargar técnicos y seleccionar el actual
         fetch('http://localhost:3000/api/tecnicos')
@@ -133,8 +132,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.cerrarDetalle = () => {
-        const detalle = document.getElementById('ticketDetalle');
-        if (detalle) detalle.style.display = 'none';
+        document.getElementById('ticketDetalle').style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
     };
 
     window.crearTicket = async (e) => {
