@@ -15,6 +15,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('asignarJefe').style.display = 'block';
     }
 
+    function getPrioridadColor(prioridad) {
+        switch(prioridad) {
+            case 'Urgente': return 'darkred';
+            case 'Alta': return 'red';
+            case 'Baja': return 'green';
+            default: return 'orange';
+        }
+    }
+
     async function obtenerTickets() {
         mostrarLoading(true);
         try {
@@ -43,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tickets.forEach(ticket => {
             const div = document.createElement('div');
             div.className = 'ticket';
-            div.style.borderLeft = ticket.estado === 'Resuelto' ? '5px solid green' : '5px solid orange';
+            div.style.borderLeft = ticket.estado === 'Resuelto' ? '5px solid green' : `5px solid ${getPrioridadColor(ticket.prioridad)}`;
             div.style.cursor = rol === 'admin' ? 'pointer' : 'default';
             
             // Click en ticket para admin
@@ -57,6 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button onclick="event.stopPropagation(); resolverTicket(${ticket.id})">Resolver</button>
                     <button onclick="event.stopPropagation(); eliminarTicket(${ticket.id})">Eliminar</button>
                     <button onclick="event.stopPropagation(); editarTicket(${JSON.stringify(ticket).replace(/"/g, '&quot;')})">Editar</button>
+                    <button onclick="event.stopPropagation(); mostrarComentarios(${ticket.id})">Comentarios</button>
                 `;
             }
 
@@ -65,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p>${ticket.descripcion}</p>
                 <p>Usuario: ${ticket.username || 'No asignado'}</p>
                 <p>Técnico: ${ticket.tecnico || 'No asignado'}</p>
+                <p>Prioridad: <span style="color: ${ticket.prioridad === 'Urgente' ? 'red' : ticket.prioridad === 'Alta' ? 'orange' : 'inherit'}">${ticket.prioridad}</span></p>
                 <p>Estado: ${ticket.estado}</p>
                 ${acciones}
             `;
@@ -82,6 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h3>${ticket.titulo}</h3>
                 <p><strong>Descripción:</strong> ${ticket.descripcion}</p>
                 <p><strong>Usuario:</strong> ${ticket.username || 'No asignado'}</p>
+                <p><strong>Prioridad:</strong> ${ticket.prioridad}</p>
                 <p><strong>Estado:</strong> ${ticket.estado}</p>
                 <label>Asignar Técnico:</label>
                 <select id="tecnicoAsignar">
@@ -195,6 +207,61 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    window.mostrarComentarios = async (ticketId) => {
+        const section = document.getElementById('comentariosSection');
+        section.style.display = 'block';
+        document.getElementById('overlay').style.display = 'block';
+        
+        window.ticketIdComentario = ticketId;
+        
+        // Cargar comentarios
+        const res = await fetch(`http://localhost:3000/api/comentarios/${ticketId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const comentarios = await res.json();
+        const lista = document.getElementById('listaComentarios');
+        lista.innerHTML = '';
+        
+        comentarios.forEach(c => {
+            const div = document.createElement('div');
+            div.style.cssText = 'border-bottom:1px solid #eee; padding:10px 0;';
+            div.innerHTML = `
+                <p><strong>${c.username || 'Usuario'}:</strong> ${c.comentario}</p>
+                <small>${new Date(c.fecha).toLocaleString()}</small>
+            `;
+            lista.appendChild(div);
+        });
+    };
+    
+    window.agregarComentario = async () => {
+        const comentario = document.getElementById('nuevoComentario').value;
+        if (!comentario) return;
+        
+        try {
+            const res = await fetch('http://localhost:3000/api/comentarios', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ ticket_id: window.ticketIdComentario, comentario })
+            });
+            
+            if (!res.ok) throw new Error('Error al agregar comentario');
+            
+            mostrarComentarios(window.ticketIdComentario);
+            document.getElementById('nuevoComentario').value = '';
+        } catch (err) {
+            mostrarMensaje(err.message, "error");
+        }
+    };
+    
+    window.cerrarComentarios = () => {
+        document.getElementById('comentariosSection').style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
+    };
+
     window.cerrarDetalle = () => {
         document.getElementById('ticketDetalle').style.display = 'none';
         document.getElementById('overlay').style.display = 'none';
@@ -207,6 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const titulo = document.getElementById('titulo').value;
         const descripcion = document.getElementById('descripcion').value;
+        const prioridad = document.getElementById('prioridad').value;
         const tecnico_id = rol === 'admin' ? document.getElementById('tecnico').value : null;
 
         try {
@@ -216,7 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ titulo, descripcion, tecnico_id })
+                body: JSON.stringify({ titulo, descripcion, prioridad, tecnico_id })
             });
 
             const data = await res.json();
