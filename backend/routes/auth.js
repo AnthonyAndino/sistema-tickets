@@ -56,9 +56,10 @@ router.post('/login', (req, res) => {
             return res.status(400).json({ error: 'Constraseña incorrecta' });
         }
 
-        const token = jwt.sign({ id: user.id, username: user.username, rol: user.rol }, SECRET, { expiresIn: '2h' });
+        const userRole = user.rol || 'usuario';
+        const token = jwt.sign({ id: user.id, username: user.username, rol: userRole }, SECRET, { expiresIn: '2h' });
 
-        res.json({ token, username: user.username, rol: user.rol });
+        res.json({ token, username: user.username, rol: userRole });
     });
 });
 
