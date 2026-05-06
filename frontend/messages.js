@@ -31,6 +31,44 @@ function mostrarMensaje(mensaje, tipo = 'info') {
     }, 3000);
 }
 
+// Función para mostrar/ocultar loading
+function mostrarLoading(mostrar, elemento = null) {
+    // Remover loading anterior si existe
+    const existingLoading = document.getElementById('loading-overlay');
+    if (existingLoading) existingLoading.remove();
+    
+    if (mostrar) {
+        const overlay = document.createElement('div');
+        overlay.id = 'loading-overlay';
+        overlay.style.cssText = 
+            'position: fixed;' +
+            'top: 0;' +
+            'left: 0;' +
+            'width: 100%;' +
+            'height: 100%;' +
+            'background: rgba(0,0,0,0.5);' +
+            'z-index: 9998;' +
+            'display: flex;' +
+            'justify-content: center;' +
+            'align-items: center;';
+        
+        const spinner = document.createElement('div');
+        spinner.textContent = 'Cargando...';
+        spinner.style.cssText = 
+            'background: white;' +
+            'padding: 20px 40px;' +
+            'border-radius: 8px;' +
+            'font-weight: bold;' +
+            'color: #333;';
+        
+        overlay.appendChild(spinner);
+        document.body.appendChild(overlay);
+        
+        // Deshabilitar elemento si se pasa
+        if (elemento) elemento.disabled = true;
+    }
+}
+
 // Agregar estilos CSS para animaciones
 const style = document.createElement('style');
 style.textContent = 
