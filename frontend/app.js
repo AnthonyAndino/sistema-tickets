@@ -56,8 +56,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 acciones = `
                     <button onclick="event.stopPropagation(); resolverTicket(${ticket.id})">Resolver</button>
                     <button onclick="event.stopPropagation(); eliminarTicket(${ticket.id})">Eliminar</button>
-                    <button onclick="event.stopPropagation(); editarTicket(${JSON.stringify(ticket).replace(/"/g, '&quot;')})">Editar</button>
-                `;
+                <button onclick="event.stopPropagation(); editarTicket(${JSON.stringify(ticket).replace(/"/g, '&quot;')})">Editar</button>
+                    <button onclick="event.stopPropagation(); mostrarComentarios(${ticket.id})">Comentarios</button>
+                 `;
             }
 
             div.innerHTML = `
