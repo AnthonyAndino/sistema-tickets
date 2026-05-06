@@ -19,10 +19,16 @@ app.use('/api/tickets', ticketRoutes);
 const tecnicosRoutes = require('./routes/tecnicos');
 const statsRoutes = require('./routes/stats');
 const commentsRoutes = require('./routes/comments');
+const uploadRoutes = require('./routes/upload');
+const historyRoutes = require('./routes/history');
+const recoveryRoutes = require('./routes/recovery');
 
 app.use('/api/tecnicos', tecnicosRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/comentarios', commentsRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/historial', historyRoutes);
+app.use('/api/recovery', recoveryRoutes);
 
 app.use(errorHandler);
 
