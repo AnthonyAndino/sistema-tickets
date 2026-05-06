@@ -49,26 +49,34 @@
 
     </main>
 
-    <div id="ticketDetalle" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px; z-index:1001; border-radius:8px;"></div>
-    <div id="overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;" onclick="cerrarDetalle()"></div>
-    
-    <div id="editarTicket" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px; z-index:1001; border-radius:8px;">
-        <h3>Editar Ticket</h3>
-        <form id="editForm">
-            <input type="text" id="editTitulo" placeholder="Titulo" required>
-            <textarea id="editDescripcion" placeholder="Descripcion" required></textarea>
-            <select id="editEstado">
-                <option value="Pendiente">Pendiente</option>
-                <option value="Resuelto">Resuelto</option>
-            </select>
-            <label>Asignar Técnico:</label>
-            <select id="editTecnico">
-                <option value="">Seleccionar tecnico</option>
-            </select>
-            <button type="submit">Guardar</button>
-            <button type="button" onclick="cerrarEdicion()">Cancelar</button>
-        </form>
-    </div>
+        <div id="ticketDetalle" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px; z-index:1001; border-radius:8px;"></div>
+        <div id="overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;" onclick="cerrarDetalle()"></div>
+        
+        <div id="editarTicket" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px; z-index:1001; border-radius:8px;">
+            <h3>Editar Ticket</h3>
+            <form id="editForm">
+                <input type="text" id="editTitulo" placeholder="Titulo" required>
+                <textarea id="editDescripcion" placeholder="Descripcion" required></textarea>
+                <select id="editEstado">
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="Resuelto">Resuelto</option>
+                </select>
+                <label>Asignar Técnico:</label>
+                <select id="editTecnico">
+                    <option value="">Seleccionar tecnico</option>
+                </select>
+                <button type="submit">Guardar</button>
+                <button type="button" onclick="cerrarEdicion()">Cancelar</button>
+            </form>
+        </div>
+
+        <div id="comentariosSection" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px; z-index:1001; border-radius:8px; max-height:80vh; overflow-y:auto;">
+            <h3>Comentarios</h3>
+            <div id="listaComentarios" style="margin:15px 0;"></div>
+            <textarea id="nuevoComentario" placeholder="Agregar comentario..." style="width:100%; height:80px; margin-bottom:10px;"></textarea>
+            <button onclick="agregarComentario()">Agregar</button>
+            <button onclick="cerrarComentarios()">Cerrar</button>
+        </div>
 
     <div id="mensajes" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
     <script src="messages.js"></script>
