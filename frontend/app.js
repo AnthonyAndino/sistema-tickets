@@ -295,6 +295,24 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'login.html';
     };
 
+    window.filtrar = (estado) => {
+        const token = localStorage.getItem('token');
+        mostrarLoading(true);
+        
+        fetch('http://localhost:3000/api/tickets', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(res => res.json())
+        .then(tickets => {
+            if (estado !== 'todos') {
+                tickets = tickets.filter(t => t.estado === estado);
+            }
+            mostrarTickets(tickets);
+        })
+        .catch(err => mostrarMensaje(err.message, "error"))
+        .finally(() => mostrarLoading(false));
+    };
+
     document.getElementById('ticketForm')?.addEventListener('submit', crearTicket);
 
     obtenerTickets();
