@@ -9,7 +9,7 @@ router.post('/', verificarToken, (req, res) => {
     const { titulo, descripcion } = req.body;
 
     if (!titulo) {
-        return res.status(400).json({ error: 'El titulo es obligatoio ' });
+        return res.status(400).json({ error: 'El titulo es obligatorio' });
     }
 
     if (typeof titulo !== 'string' || titulo.length > 255) {
@@ -95,7 +95,6 @@ router.put('/:id', verificarToken, verificarRol('admin'), (req, res) => {
         res.json({ mensaje: 'Ticket actualizado' });
     });
 });
-});
 
 //eliminar ticket (solo admin)
 router.delete('/:id', verificarToken, verificarRol('admin'), (req, res) => {
@@ -111,4 +110,3 @@ router.delete('/:id', verificarToken, verificarRol('admin'), (req, res) => {
 });
 
 module.exports = router;
-
