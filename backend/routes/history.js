@@ -27,4 +27,4 @@ function registrarCambio(ticketId, userId, campo, valorAnterior, valorNuevo) {
         });
 }
 
-module.exports = { router, registrarCambio };
+module.exports = router;

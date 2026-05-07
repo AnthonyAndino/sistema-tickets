@@ -38,8 +38,7 @@ router.get('/', verificarToken, (req, res) => {
     let sql = `SELECT tickets.*, tecnicos.nombre AS tecnico, usuarios.username 
                FROM tickets 
                LEFT JOIN tecnicos ON tickets.tecnico_id = tecnicos.id
-               LEFT JOIN usuarios ON tickets.user_id = usuarios.id
-               ORDER BY FIELD(prioridad, 'Urgente', 'Alta', 'Media', 'Baja')`;
+               LEFT JOIN usuarios ON tickets.user_id = usuarios.id`;
     let params = [];
     let conditions = [];
     
@@ -84,7 +83,6 @@ router.get('/', verificarToken, (req, res) => {
 
         res.json(results);
     });
-});
 });
 
 // Editar ticket (solo admin)

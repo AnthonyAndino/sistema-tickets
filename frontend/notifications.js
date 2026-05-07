@@ -3,43 +3,45 @@ let socket;
 
 function conectarWebSocket() {
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token || typeof io === 'undefined') return;
 
-    socket = io('http://localhost:3000');
+    socket = io('http://localhost:3000', {
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000
+    });
 
     socket.on('connect', () => {
-        console.log('Conectado a WebSocket');
-        // Obtener user_id del token (simplificado)
-        const user = JSON.parse(atob(token.split('.')[1]));
-        socket.emit('join', user.id);
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (payload && payload.id) {
+                socket.emit('join', payload.id);
+            }
+        } catch (e) {
+            console.error('Error al decodificar token para WebSocket');
+        }
     });
 
     socket.on('notificacion', (data) => {
         mostrarMensaje(data.mensaje, 'info');
     });
-
-    socket.on('disconnect', () => {
-        console.log('Desconectado de WebSocket');
-    });
 }
 
 // Notificar nuevo ticket
 function notificarNuevoTicket(titulo, ticketId) {
-    if (socket) {
+    if (socket && socket.connected) {
         socket.emit('nuevo-ticket', { titulo, ticketId });
     }
 }
 
 // Notificar ticket resuelto
 function notificarTicketResuelto(user_id, ticketId) {
-    if (socket) {
+    if (socket && socket.connected) {
         socket.emit('ticket-resuelto', { user_id, ticketId });
     }
 }
 
 // Conectar al cargar
 document.addEventListener('DOMContentLoaded', () => {
-    if (typeof io !== 'undefined') {
-        conectarWebSocket();
-    }
+    conectarWebSocket();
 });

@@ -1,99 +1,243 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Tickets</title>
+    <title>AuraDesk</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
-<body>
-    <header>
-        <h1>Sistema de Tickets - Soporte TIC</h1>
-        <p id="usuarioActivo"></p>
-        <button onclick="toggleDarkMode()">🌙</button>
-        <button onclick="logout()">Cerrar sesión</button>
-    </header>
+<body class="dashboard-body">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <span class="logo-icon">▲</span>
+                <h3>AuraDesk</h3>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-target="view-tickets">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                Tickets
+            </a>
+            <a href="#" class="nav-item" data-target="view-templates">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                Templates
+            </a>
+            <a href="#" class="nav-item" data-target="view-categories">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line></svg>
+                Categories
+            </a>
+            <a href="#" class="nav-item" data-target="view-knowledgebase">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                Knowledgebase
+            </a>
+            <a href="#" class="nav-item" data-target="view-team">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path></svg>
+                Team
+            </a>
+            <a href="#" class="nav-item" data-target="view-calendar">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                Calendar
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <button class="btn-sidebar-secondary" onclick="logout()">Log out</button>
+        </div>
+    </aside>
 
-    <main>
-        <section class="form-container">
-            <h2>Crear Ticket</h2>
-            <form id="ticketForm">
-                <input type="text" id="titulo" placeholder="Titulo" required>
-                <textarea id="descripcion" placeholder="Descripcion" required></textarea>
-                <select id="prioridad">
-                    <option value="Baja">Baja</option>
-                    <option value="Media" selected>Media</option>
-                    <option value="Alta">Alta</option>
-                    <option value="Urgente">Urgente</option>
-                </select>
-                <div id="asignarJefe" style="display:none;">
-                    <label for="tecnico">Asignar a tecnico:</label>
-                    <select id="tecnico">
-                        <option value="">Seleccionar tecnico</option>
-                    </select>
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-left">
+                <h2 id="view-title" class="view-title">Tickets</h2>
+            </div>
+            <div class="topbar-right">
+                <button class="btn-create" id="headerCreateBtn" onclick="abrirModal()">New Ticket</button>
+                <div class="user-profile">
+                    <div class="avatar" id="avatarInitials">U</div>
+                    <span id="usuarioActivo" class="username-display"></span>
                 </div>
-                <button type="submit">Crear Ticket</button>
-            </form>
-        </section>
+            </div>
+        </header>
 
-        <section>
-            <h2>Tickets</h2>
-            <div class="filtros">
-                <input type="text" id="busqueda" placeholder="Buscar tickets..." style="padding:8px; border:1px solid #ddd; border-radius:5px;">
-                <select id="filtroEstado">
-                    <option value="">Todos los estados</option>
-                    <option value="Pendiente">Pendiente</option>
-                    <option value="Resuelto">Resuelto</option>
-                </select>
-                <select id="filtroPrioridad">
-                    <option value="">Todas las prioridades</option>
-                    <option value="Urgente">Urgente</option>
-                    <option value="Alta">Alta</option>
-                    <option value="Media">Media</option>
-                    <option value="Baja">Baja</option>
-                </select>
-                <button onclick="aplicarFiltros()">Filtrar</button>
-                <button onclick="limpiarFiltros()">Limpiar</button>
+        <div class="view-container" id="app-view-container">
+            <!-- TICKETS -->
+            <div id="view-tickets" class="spa-view active-view">
+                <section class="dashboard-stats">
+                    <div class="stat-box">
+                        <span>Open & Pending</span>
+                        <h3 id="statOpen">0</h3>
+                    </div>
+                    <div class="stat-box">
+                        <span>Assigned to You</span>
+                        <h3 id="statAssignedMe">0</h3>
+                    </div>
+                    <div class="stat-box">
+                        <span>Unassigned Queue</span>
+                        <h3 id="statUnassigned">0</h3>
+                    </div>
+                </section>
+                <section class="dashboard-controls">
+                    <div class="filters-wrap">
+                        <div class="search-bar">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            <input type="text" id="busqueda" placeholder="Search tickets..." class="filter-input borderless">
+                        </div>
+                        <div class="filters-group">
+                            <select id="filtroEstado" class="filter-dropdown">
+                                <option value="">Estado</option>
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="Resuelto">Resuelto</option>
+                            </select>
+                            <select id="filtroPrioridad" class="filter-dropdown">
+                                <option value="">Prioridad</option>
+                                <option value="Baja">Baja</option>
+                                <option value="Media">Media</option>
+                                <option value="Alta">Alta</option>
+                                <option value="Urgente">Urgente</option>
+                            </select>
+                            <button onclick="aplicarFiltros()" class="btn-icon-subtle">Filtrar</button>
+                            <button onclick="limpiarFiltros()" class="btn-icon-subtle" style="display:none;" id="btnLimpiar">Limpiar</button>
+                        </div>
+                    </div>
+                </section>
+                <section class="table-container">
+                    <table class="tickets-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Asunto</th>
+                                <th>Usuario</th>
+                                <th>Estado</th>
+                                <th>Prioridad</th>
+                                <th>Asignado</th>
+                                <th style="text-align: right;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tickets"></tbody>
+                    </table>
+                </section>
             </div>
 
-            <div id="tickets" class="tickets-grid"></div>
-        </section>
+            <!-- TEMPLATES -->
+            <div id="view-templates" class="spa-view">
+                <div class="blank-slate">
+                    <h3>Response Templates</h3>
+                    <p>Standardize your support with pre-written templates.</p>
+                    <div class="grid-list" id="templates-grid"></div>
+                </div>
+            </div>
 
-        <div id="ticketDetalle" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px; z-index:1001; border-radius:8px;"></div>
-        <div id="overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;" onclick="cerrarDetalle()"></div>
-        
-        <div id="editarTicket" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px; z-index:1001; border-radius:8px;">
-            <h3>Editar Ticket</h3>
-            <form id="editForm">
-                <input type="text" id="editTitulo" placeholder="Titulo" required>
-                <textarea id="editDescripcion" placeholder="Descripcion" required></textarea>
-                <select id="editEstado">
-                    <option value="Pendiente">Pendiente</option>
-                    <option value="Resuelto">Resuelto</option>
-                </select>
-                <label>Asignar Técnico:</label>
-                <select id="editTecnico">
-                    <option value="">Seleccionar tecnico</option>
-                </select>
-                <button type="submit">Guardar</button>
-                <button type="button" onclick="cerrarEdicion()">Cancelar</button>
-            </form>
-        </div>
+            <!-- CATEGORIES -->
+            <div id="view-categories" class="spa-view">
+                <div class="blank-slate">
+                    <h3>Ticket Categories</h3>
+                    <p>Organize issues effectively to automate routing.</p>
+                    <div class="list-container" id="categories-list"></div>
+                </div>
+            </div>
 
-        <div id="comentariosSection" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px; z-index:1001; border-radius:8px; max-height:80vh; overflow-y:auto;">
-            <h3>Comentarios</h3>
-            <div id="listaComentarios" style="margin:15px 0;"></div>
-            <textarea id="nuevoComentario" placeholder="Agregar comentario..." style="width:100%; height:80px; margin-bottom:10px;"></textarea>
-            <button onclick="agregarComentario()">Agregar</button>
-            <button onclick="cerrarComentarios()">Cerrar</button>
+            <!-- KNOWLEDGEBASE -->
+            <div id="view-knowledgebase" class="spa-view">
+                <div class="blank-slate">
+                    <h3>Knowledge Base</h3>
+                    <p>Help articles and internal wikis.</p>
+                    <div class="grid-list" id="kb-grid"></div>
+                </div>
+            </div>
+
+            <!-- TEAM -->
+            <div id="view-team" class="spa-view">
+                <div class="blank-slate">
+                    <h3>Team Workspace</h3>
+                    <p>Manage technicians and support staff.</p>
+                    <div class="team-grid" id="team-grid"></div>
+                </div>
+            </div>
+
+            <!-- CALENDAR -->
+            <div id="view-calendar" class="spa-view">
+                <div class="blank-slate">
+                    <h3>Schedule & Calendar</h3>
+                    <p>View upcoming maintenance and scheduled tickets.</p>
+                    <div class="grid-list" id="calendar-grid"></div>
+                </div>
+            </div>
         </div>
     </main>
 
-    <div id="mensajes" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <!-- Modal Ticket -->
+    <div id="ticketModal" class="modal-overlay">
+        <div class="modal-pane">
+            <div class="modal-header">
+                <h3 id="formTitle">Create New Ticket</h3>
+                <button class="close-modal" onclick="cerrarModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+            </div>
+            <div class="modal-body">
+                <form id="ticketForm" class="clean-form">
+                    <input type="hidden" id="ticketId">
+                    <div class="form-group">
+                        <label>Asunto</label>
+                        <input type="text" id="titulo" placeholder="Breve descripción del problema..." required>
+                    </div>
+                    <div class="form-group">
+                        <label>Detalles técnicos</label>
+                        <textarea id="descripcion" placeholder="Cuentanos más detalles..." rows="5" required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Prioridad</label>
+                            <select id="prioridad">
+                                <option value="Baja">Low (Baja)</option>
+                                <option value="Media" selected>Medium (Media)</option>
+                                <option value="Alta">High (Alta)</option>
+                                <option value="Urgente">Critical (Urgente)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="estadoContainer" style="display:none;">
+                            <label>Estado</label>
+                            <select id="estado">
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="Resuelto">Resuelto</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" id="asignarJefe" style="display:none;">
+                        <label>Asignación</label>
+                        <select id="tecnico">
+                            <option value="">Auto-assign</option>
+                        </select>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-outline" onclick="cerrarModal()">Cancel</button>
+                        <button type="submit" id="submitBtn" class="btn-create">Create Ticket</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Comentarios -->
+    <div id="comentariosModal" class="modal-overlay">
+        <div class="modal-pane side-pane">
+            <div class="modal-header">
+                <h3>Thread</h3>
+                <button class="close-modal" onclick="cerrarComentarios()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+            </div>
+            <div class="modal-body pane-body">
+                <div id="listaComentarios" class="thread-list"></div>
+            </div>
+            <div class="pane-footer">
+                <textarea id="nuevoComentario" placeholder="Escribe tu respuesta..." rows="3"></textarea>
+                <div style="text-align:right; margin-top:10px;">
+                    <button onclick="agregarComentario()" class="btn-create">Reply</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="mensajes" class="toast-container"></div>
     <script src="messages.js"></script>
-    <script src="notifications.js"></script>
-    <script src="darkmode.js"></script>
     <script src="app.js"></script>
     <script src="authCheck.js"></script>
 </body>

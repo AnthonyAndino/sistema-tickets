@@ -1,30 +1,58 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Login - AuraDesk</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
-
 <body class="login-body">
+    <div class="login-split-container">
+        <!-- Left Side: Form -->
+        <div class="login-left">
+            <div class="login-brand">
+                <span class="logo-icon">▲</span>
+                <h3>AuraDesk</h3>
+            </div>
+            
+            <div class="login-form-wrapper">
+                <h2>Bienvenido de vuelta</h2>
+                <p class="login-subtitle">Ingresa tus credenciales para acceder a tu espacio de trabajo.</p>
+                
+                <form id="loginForm" class="modern-login">
+                    <div class="form-group-login">
+                        <label>Usuario</label>
+                        <input type="text" id="username" placeholder="tu.usuario" required>
+                    </div>
+                    <div class="form-group-login">
+                        <label>Contraseña</label>
+                        <input type="password" id="password" placeholder="••••••••" required>
+                    </div>
+                    
+                    <div class="login-options">
+                        <label class="remember-me">
+                            <input type="checkbox"> Recuérdame
+                        </label>
+                        <a href="#" class="forgot-pwd" onclick="alert('Por el momento el restablecimiento de contraseñas está a cargo del administrador de sistemas.')">¿Olvidaste tu contraseña?</a>
+                    </div>
+                    
+                    <button type="submit" class="btn-login-submit">Ingresar a AuraDesk</button>
+                    <p id="error" class="login-error"></p>
+                </form>
+            </div>
+        </div>
 
-    <div class="login-container">
-        <h2>Sistema de Tickets</h2>
-
-        <form id="loginForm">
-            <input type="text" id="username" placeholder="Usuario" required>
-            <input type="password" id="password" placeholder="Contraseña" required>
-            <button type="submit">Ingresar</button>
-        </form>
-        <p id="error"></p>
-
+        <!-- Right Side: Graphic/Quote -->
+        <div class="login-right">
+            <div class="login-quote-box">
+                <blockquote>"El mejor departamento de soporte es aquel que parece que no estuviera ahí, porque todo simplemente funciona."</blockquote>
+                <cite>— Minimalist Service Philosophy</cite>
+            </div>
+        </div>
     </div>
 
+    <!-- Scripts -->
     <script src="login.js"></script>
-
-
 </body>
-
 </html>
