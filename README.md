@@ -155,6 +155,30 @@ Abre `frontend/login.html` en el navegador. El sistema incluye:
 - Asignación de técnicos
 - Interfaz responsive con tema oscuro
 
+## Contribución
+
+1. Haz un fork del proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/nueva-funcionalidad`)
+3. Haz commit de tus cambios (`git commit -m 'Agrega nueva funcionalidad'`)
+4. Haz push a la rama (`git push origin feature/nueva-funcionalidad`)
+5. Abre un Pull Request
+
+## Mejoras Futuras
+
+- [ ] Implementar roles de usuario (admin, técnico, usuario)
+- [ ] Agregar paginación a la lista de tickets
+- [ ] Filtros avanzados por fecha y estado
+- [ ] Notificaciones en tiempo real
+- [ ] Historial de cambios de tickets
+- [ ] Panel de estadísticas y reportes
+
+## Scripts Disponibles
+
+```bash
+npm start       # Inicia el servidor en producción
+npm run dev     # Inicia el servidor con nodemon (desarrollo)
+```
+
 ## Licencia
 
 ISC
