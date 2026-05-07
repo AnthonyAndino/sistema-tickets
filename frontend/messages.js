@@ -66,6 +66,9 @@ function mostrarLoading(mostrar, elemento = null) {
         
         // Deshabilitar elemento si se pasa
         if (elemento) elemento.disabled = true;
+    } else {
+        // Habilitar elemento si se pasa
+        if (elemento) elemento.disabled = false;
     }
 }
 

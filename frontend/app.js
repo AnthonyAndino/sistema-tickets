@@ -146,15 +146,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     </p>
                 </div>
             
-                <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:24px; border-top:1px solid var(--border-color); padding-top:24px;">
+                <div style="display:flex; justify-content:${rol === 'admin' ? 'space-between' : 'flex-end'}; align-items:flex-end; margin-top:24px; border-top:1px solid var(--border-color); padding-top:24px;">
+                    ${rol === 'admin' ? `
                     <div>
                         <label style="display:block; font-size:0.8rem; font-weight:500; color:var(--text-secondary); margin-bottom:8px;">Asignar Técnico</label>
                         <select id="tecnicoAsignar" class="modal-input" style="min-width:200px; margin:0;">
                             <option value="">Seleccionar técnico</option>
                         </select>
-                    </div>
+                    </div>` : ''}
                     <div style="display:flex; gap:12px;">
-                        <button class="btn-primary" onclick="asignarTecnico(${ticket.id})">Asignar</button>
+                        ${rol === 'admin' ? `<button class="btn-primary" onclick="asignarTecnico(${ticket.id})">Asignar</button>` : ''}
                         <button class="btn-small" onclick="cerrarDetalle()">Cerrar</button>
                     </div>
                 </div>
@@ -168,6 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(res => res.json())
             .then(tecnicos => {
                 const select = document.getElementById('tecnicoAsignar');
+                if (!select) return;
                 tecnicos.forEach(t => {
                     const option = document.createElement('option');
                     option.value = t.id;
