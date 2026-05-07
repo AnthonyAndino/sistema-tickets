@@ -12,10 +12,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const avatarEl = document.getElementById('avatarLetra');
     if(avatarEl) avatarEl.textContent = username ? username.charAt(0).toUpperCase() : 'U';
 
+    // Mostrar badge de rol
+    const rolBadge = document.getElementById('rolBadge');
+    if (rolBadge) {
+        rolBadge.textContent = rol === 'admin' ? 'Admin' : 'Usuario';
+        rolBadge.classList.add(rol === 'admin' ? 'rol-admin' : 'rol-usuario');
+    }
+
     // Mostrar asignación de tecnico solo para admin
     if (rol === 'admin') {
         document.getElementById('asignarJefe').style.display = 'block';
     }
+
+    // Saludo dinámico
+    function actualizarSaludo() {
+        const hora = new Date().getHours();
+        let saludo;
+        if (hora >= 5 && hora < 12) saludo = 'Buenos días';
+        else if (hora >= 12 && hora < 18) saludo = 'Buenas tardes';
+        else saludo = 'Buenas noches';
+
+        const greetEl = document.getElementById('greetingText');
+        if (greetEl) greetEl.textContent = `${saludo}, ${username || 'Usuario'} 👋`;
+
+        const subEl = document.getElementById('greetingSubtext');
+        if (subEl) {
+            subEl.textContent = rol === 'admin' 
+                ? 'Aquí tienes un resumen general del sistema' 
+                : 'Aquí tienes un resumen de tus tickets';
+        }
+    }
+    actualizarSaludo();
 
     function getPrioridadClass(prioridad) {
         switch(prioridad) {
@@ -61,6 +88,18 @@ document.addEventListener('DOMContentLoaded', () => {
             ticketsMostrados = tickets.filter(t => t.estado === estadoFiltro);
         }
 
+        // Estado vacío cuando no hay tickets
+        if (ticketsMostrados.length === 0) {
+            lista.innerHTML = `
+                <div style="text-align:center; padding:60px 20px; color:var(--text-secondary);">
+                    <i class="ph ph-ticket" style="font-size:3rem; display:block; margin-bottom:12px; color:#d1d5db;"></i>
+                    <p style="margin:0 0 4px 0; font-size:1rem; font-weight:500;">No hay tickets ${estadoFiltro ? 'con estado "' + estadoFiltro + '"' : 'aún'}</p>
+                    <p style="margin:0; font-size:0.85rem;">Los tickets que crees aparecerán aquí</p>
+                </div>
+            `;
+            return;
+        }
+
         ticketsMostrados.forEach(ticket => {
             const div = document.createElement('div');
             div.className = 'ticket-row';
@@ -79,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="btn-action-icon success" onclick="event.stopPropagation(); resolverTicket(${ticket.id})" title="Resolver">
                         <i class="ph ph-check"></i>
                     </button>
-                    <button class="btn-action-icon danger" onclick="event.stopPropagation(); eliminarTicket(${ticket.id})" title="Eliminar">
+                    <button class="btn-action-icon danger" onclick="event.stopPropagation(); confirmarEliminar(${ticket.id})" title="Eliminar">
                         <i class="ph ph-trash"></i>
                     </button>
                     <button class="btn-action-icon" onclick="event.stopPropagation(); editarTicket(${JSON.stringify(ticket).replace(/"/g, '&quot;')})" title="Editar">
@@ -90,11 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                 `;
             } else {
-                acciones = `
-                    <button class="btn-action-icon" onclick="event.stopPropagation(); mostrarComentarios(${ticket.id})" title="Notas">
-                        <i class="ph ph-note-pencil"></i>
-                    </button>
-                `;
+                acciones = '';
             }
 
             const fechaFormat = ticket.fecha_creacion ? new Date(ticket.fecha_creacion).toLocaleDateString() : 'N/A';
@@ -125,9 +160,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const prioClass = getPrioridadClass(ticket.prioridad);
         const estadoClass = ticket.estado === 'Pendiente' ? 'status-pendiente' : ticket.estado === 'Resuelto' ? 'status-resuelto' : 'status-nuevo';
 
+        // Para usuarios normales: mostrar comentarios integrados en el detalle
+        const comentariosHTML = rol !== 'admin' ? `
+            <div style="margin-top:24px; border-top:1px solid var(--border-color); padding-top:24px;">
+                <h4 style="margin:0 0 16px 0; font-size:1rem; font-weight:600; display:flex; align-items:center; gap:8px;">
+                    <i class="ph ph-chat-dots" style="color:var(--text-secondary);"></i> Comentarios y Notas
+                </h4>
+                <div id="detalleComentarios" style="max-height:200px; overflow-y:auto; margin-bottom:16px; display:flex; flex-direction:column; gap:8px;">
+                    <p style="color:var(--text-secondary); font-size:0.85rem; text-align:center;">Cargando comentarios...</p>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <textarea id="detalleNuevoComentario" placeholder="Escribe un comentario..." style="flex:1; padding:10px 14px; border:1px solid var(--border-color); border-radius:8px; font-family:inherit; font-size:0.9rem; resize:none; height:44px; box-sizing:border-box; background:#f9fafb;"></textarea>
+                    <button class="btn-primary" onclick="agregarComentarioDesdeDetalle(${ticket.id})" style="white-space:nowrap; height:44px;">
+                        <i class="ph ph-paper-plane-right"></i>
+                    </button>
+                </div>
+            </div>
+        ` : '';
+
         detalle.innerHTML = `
             <div class="detalle-contenido" style="padding: 10px;">
-                <h3 style="margin: 0 0 16px 0; font-size: 1.5rem; font-weight: 600;">${ticket.titulo}</h3>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
+                    <h3 style="margin: 0; font-size: 1.5rem; font-weight: 600;">${ticket.titulo}</h3>
+                    <button class="close-btn" onclick="cerrarDetalle()" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:var(--text-secondary); padding:4px;"><i class="ph ph-x"></i></button>
+                </div>
                 <div style="display:flex; gap:12px; margin-bottom: 24px; flex-wrap: wrap;">
                     <span class="t-priority ${prioClass}" style="display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:6px; font-size:0.8rem; font-weight:500;">
                         <i class="ph-fill ph-flag"></i> ${ticket.prioridad}
@@ -145,6 +201,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${ticket.descripcion || '<em style="color:var(--text-secondary);">Sin descripción</em>'}
                     </p>
                 </div>
+
+                ${comentariosHTML}
             
                 <div style="display:flex; justify-content:${rol === 'admin' ? 'space-between' : 'flex-end'}; align-items:flex-end; margin-top:24px; border-top:1px solid var(--border-color); padding-top:24px;">
                     ${rol === 'admin' ? `
@@ -164,20 +222,87 @@ document.addEventListener('DOMContentLoaded', () => {
         detalle.style.display = 'block';
         document.getElementById('overlay').style.display = 'block';
         
-        // Cargar técnicos y seleccionar el actual
-        fetch('http://localhost:3000/api/tecnicos')
-            .then(res => res.json())
-            .then(tecnicos => {
-                const select = document.getElementById('tecnicoAsignar');
-                if (!select) return;
-                tecnicos.forEach(t => {
-                    const option = document.createElement('option');
-                    option.value = t.id;
-                    option.textContent = t.nombre;
-                    if (t.id == ticket.tecnico_id) option.selected = true;
-                    select.appendChild(option);
+        // Cargar técnicos y seleccionar el actual (admin)
+        if (rol === 'admin') {
+            fetch('http://localhost:3000/api/tecnicos')
+                .then(res => res.json())
+                .then(tecnicos => {
+                    const select = document.getElementById('tecnicoAsignar');
+                    if (!select) return;
+                    tecnicos.forEach(t => {
+                        const option = document.createElement('option');
+                        option.value = t.id;
+                        option.textContent = t.nombre;
+                        if (t.id == ticket.tecnico_id) option.selected = true;
+                        select.appendChild(option);
+                    });
                 });
+        }
+
+        // Cargar comentarios en el detalle (para usuarios)
+        if (rol !== 'admin') {
+            cargarComentariosDetalle(ticket.id);
+        }
+    };
+
+    // Cargar comentarios directamente en el panel de detalle del ticket
+    async function cargarComentariosDetalle(ticketId) {
+        try {
+            const res = await fetch(`http://localhost:3000/api/comentarios/${ticketId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
             });
+            const comentarios = await res.json();
+            const lista = document.getElementById('detalleComentarios');
+            if (!lista) return;
+            lista.innerHTML = '';
+
+            if (comentarios.length === 0) {
+                lista.innerHTML = '<p style="color:var(--text-secondary); font-size:0.85rem; text-align:center; padding:16px 0;">No hay comentarios aún</p>';
+                return;
+            }
+
+            comentarios.forEach(c => {
+                const div = document.createElement('div');
+                div.style.cssText = 'padding:10px 12px; background:var(--bg-main); border:1px solid var(--border-color); border-radius:8px;';
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <span style="font-weight:600; font-size:0.85rem; color:var(--text-primary);">${c.username || 'Usuario'}</span>
+                        <small style="color:var(--text-secondary); font-size:0.75rem;">${new Date(c.fecha).toLocaleString()}</small>
+                    </div>
+                    <p style="margin:0; font-size:0.9rem; color:var(--text-primary); line-height:1.4;">${c.comentario}</p>
+                `;
+                lista.appendChild(div);
+            });
+            // Scroll al último comentario
+            lista.scrollTop = lista.scrollHeight;
+        } catch (err) {
+            // Silenciar error de carga de comentarios
+        }
+    }
+
+    // Agregar comentario desde el panel de detalle
+    window.agregarComentarioDesdeDetalle = async (ticketId) => {
+        const input = document.getElementById('detalleNuevoComentario');
+        const comentario = input?.value?.trim();
+        if (!comentario) return;
+
+        try {
+            const res = await fetch('http://localhost:3000/api/comentarios', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ ticket_id: ticketId, comentario })
+            });
+
+            if (!res.ok) throw new Error('Error al agregar comentario');
+
+            input.value = '';
+            cargarComentariosDetalle(ticketId);
+        } catch (err) {
+            mostrarMensaje(err.message, 'error');
+        }
     };
 
     window.editarTicket = (ticket) => {
@@ -364,12 +489,17 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const res = await fetch(`http://localhost:3000/api/tickets/${id}`, {
                 method: 'PUT',
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ estado: 'Resuelto' })
             });
 
             if (!res.ok) throw new Error('Error al resolver ticket');
-            mostrarMensaje('Ticket resuelto', 'exito');
+            mostrarMensaje('Ticket resuelto correctamente', 'exito');
             obtenerTickets();
+            cargarNotificaciones();
         } catch (err) {
             mostrarMensaje(err.message, "error");
         } finally {
@@ -377,8 +507,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // Modal de confirmación elegante (reemplaza confirm())
+    window.confirmarEliminar = (id) => {
+        const modal = document.getElementById('confirmModal');
+        const overlay = document.getElementById('overlay');
+        if (!modal) return;
+        modal.style.display = 'block';
+        overlay.style.display = 'block';
+
+        document.getElementById('confirmAceptar').onclick = async () => {
+            modal.style.display = 'none';
+            overlay.style.display = 'none';
+            await eliminarTicket(id);
+        };
+        document.getElementById('confirmCancelar').onclick = () => {
+            modal.style.display = 'none';
+            overlay.style.display = 'none';
+        };
+    };
+
     window.eliminarTicket = async (id) => {
-        if (!confirm('¿Seguro que deseas eliminar este ticket?')) return;
         mostrarLoading(true);
         try {
             const res = await fetch(`http://localhost:3000/api/tickets/${id}`, {
@@ -387,7 +535,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!res.ok) throw new Error('Error al eliminar ticket');
-            mostrarMensaje('Ticket eliminado', 'exito');
+            mostrarMensaje('Ticket eliminado correctamente', 'exito');
             obtenerTickets();
         } catch (err) {
             mostrarMensaje(err.message, "error");
@@ -542,6 +690,13 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const kpiResueltos = document.getElementById('kpi-resueltos');
         if(kpiResueltos) kpiResueltos.textContent = resueltos;
+
+        // Tasa de resolución
+        const kpiTasa = document.getElementById('kpi-tasa');
+        if(kpiTasa) {
+            const tasa = tickets.length > 0 ? Math.round((resueltos / tickets.length) * 100) : 0;
+            kpiTasa.textContent = tasa + '%';
+        }
         
         const cTodos = document.getElementById('count-todos');
         if(cTodos) cTodos.textContent = tickets.length;
@@ -553,6 +708,69 @@ document.addEventListener('DOMContentLoaded', () => {
         if(cResueltos) cResueltos.textContent = resueltos;
         
         generarCalendario(tickets);
+        generarActividadReciente(tickets);
+    }
+
+    // Actividad reciente con datos reales
+    function generarActividadReciente(tickets) {
+        const lista = document.getElementById('recentActivityList');
+        if (!lista) return;
+
+        // Ordenar por fecha más reciente
+        const recientes = [...tickets]
+            .filter(t => t.fecha_creacion)
+            .sort((a, b) => new Date(b.fecha_creacion) - new Date(a.fecha_creacion))
+            .slice(0, 6);
+
+        if (recientes.length === 0) {
+            lista.innerHTML = `
+                <div style="text-align:center; padding:32px 16px; color:var(--text-secondary);">
+                    <i class="ph ph-clipboard-text" style="font-size:2rem; display:block; margin-bottom:8px; color:#d1d5db;"></i>
+                    <p style="margin:0; font-size:0.9rem;">No hay actividad reciente</p>
+                </div>
+            `;
+            return;
+        }
+
+        lista.innerHTML = '';
+        recientes.forEach(t => {
+            const ahora = new Date();
+            const fecha = new Date(t.fecha_creacion);
+            const diffMin = Math.round((ahora - fecha) / 60000);
+            let tiempoTexto;
+            if (diffMin < 1) tiempoTexto = 'Ahora';
+            else if (diffMin < 60) tiempoTexto = `Hace ${diffMin} min`;
+            else if (diffMin < 1440) {
+                const h = Math.round(diffMin / 60);
+                tiempoTexto = `Hace ${h} hora${h > 1 ? 's' : ''}`;
+            } else {
+                const d = Math.round(diffMin / 1440);
+                tiempoTexto = `Hace ${d} día${d > 1 ? 's' : ''}`;
+            }
+
+            const iconMap = {
+                'Pendiente': { icon: 'ph-clock', color: '#d97706', bg: '#fef3c7' },
+                'Resuelto': { icon: 'ph-check-circle', color: '#16a34a', bg: '#dcfce7' }
+            };
+            const style = iconMap[t.estado] || { icon: 'ph-ticket', color: '#0284c7', bg: '#e0f2fe' };
+
+            const item = document.createElement('div');
+            item.style.cssText = 'display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border-color); cursor:pointer;';
+            item.innerHTML = `
+                <div style="width:36px; height:36px; border-radius:8px; background:${style.bg}; color:${style.color}; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0;">
+                    <i class="ph-fill ${style.icon}"></i>
+                </div>
+                <div style="flex:1; min-width:0;">
+                    <p style="margin:0; font-size:0.85rem; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        <span style="color:var(--text-secondary);">#${t.id}</span> ${t.titulo}
+                    </p>
+                    <small style="color:var(--text-secondary); font-size:0.75rem;">${t.username || 'Usuario'} · ${tiempoTexto}</small>
+                </div>
+                <span class="t-status ${t.estado === 'Pendiente' ? 'status-pendiente' : 'status-resuelto'}" style="font-size:0.75rem; white-space:nowrap;">${t.estado}</span>
+            `;
+            item.onclick = () => mostrarDetalleTicket(t);
+            lista.appendChild(item);
+        });
     }
 
     function generarCalendario(tickets) {
@@ -609,6 +827,130 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- Sistema de Notificaciones Universal (DB) ---
+    async function cargarNotificaciones() {
+        try {
+            // Obtener conteo de no leídas
+            const countRes = await fetch('http://localhost:3000/api/notificaciones/count', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!countRes.ok) return;
+            const { count } = await countRes.json();
+
+            const badge = document.getElementById('notifBadge');
+            if (badge) {
+                badge.textContent = count;
+                badge.style.display = count > 0 ? 'flex' : 'none';
+                // Animación de pulso si hay nuevas
+                if (count > 0) badge.classList.add('badge-pulse');
+                else badge.classList.remove('badge-pulse');
+            }
+
+            // Obtener lista de notificaciones
+            const res = await fetch('http://localhost:3000/api/notificaciones', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) return;
+            const notificaciones = await res.json();
+
+            const content = document.getElementById('notifContent');
+            if (!content) return;
+            content.innerHTML = '';
+
+            if (notificaciones.length === 0) {
+                content.innerHTML = `
+                    <div style="padding:32px 16px; text-align:center; color:var(--text-secondary);">
+                        <i class="ph ph-bell-slash" style="font-size:1.5rem; display:block; margin-bottom:8px;"></i>
+                        <p style="margin:0; font-size:0.85rem;">Sin notificaciones</p>
+                    </div>
+                `;
+                return;
+            }
+
+            notificaciones.forEach(n => {
+                const fecha = new Date(n.fecha);
+                const ahora = new Date();
+                const diffMin = Math.round((ahora - fecha) / 60000);
+                let tiempoTexto;
+                if (diffMin < 1) tiempoTexto = 'Ahora';
+                else if (diffMin < 60) tiempoTexto = `Hace ${diffMin} min`;
+                else if (diffMin < 1440) {
+                    const h = Math.round(diffMin / 60);
+                    tiempoTexto = `Hace ${h}h`;
+                } else {
+                    const d = Math.round(diffMin / 1440);
+                    tiempoTexto = `Hace ${d}d`;
+                }
+
+                // Icono según tipo
+                let icon, iconColor;
+                switch(n.tipo) {
+                    case 'nuevo_ticket': icon = 'ph-ticket'; iconColor = '#0284c7'; break;
+                    case 'estado_cambio': icon = 'ph-arrow-circle-right'; iconColor = '#16a34a'; break;
+                    case 'nuevo_comentario': icon = 'ph-chat-circle-dots'; iconColor = '#9333ea'; break;
+                    default: icon = 'ph-bell'; iconColor = '#6b7280'; break;
+                }
+
+                const item = document.createElement('div');
+                item.className = 'notif-item' + (n.leida ? '' : ' notif-unread');
+                item.innerHTML = `
+                    <div style="display:flex; gap:10px; align-items:flex-start;">
+                        <i class="ph-fill ${icon}" style="color:${iconColor}; font-size:1.1rem; margin-top:2px; flex-shrink:0;"></i>
+                        <div style="flex:1; min-width:0;">
+                            <p style="margin:0; font-size:0.83rem; line-height:1.3;">${n.mensaje}</p>
+                            <small style="color:var(--text-secondary);">${tiempoTexto}</small>
+                        </div>
+                    </div>
+                `;
+
+                // Click en la notificación → abrir el ticket
+                if (n.ticket_id) {
+                    item.onclick = (e) => {
+                        e.stopPropagation();
+                        document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+                        // Buscar ticket en allTickets
+                        const ticket = window.allTickets.find(t => t.id === n.ticket_id);
+                        if (ticket) {
+                            mostrarDetalleTicket(ticket);
+                        } else {
+                            // Si no está en allTickets (puede ser de otro usuario), ir a tickets
+                            cambiarVista('tickets');
+                        }
+                        // Marcar como leída
+                        fetch(`http://localhost:3000/api/notificaciones/${n.id}/leer`, {
+                            method: 'PUT',
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                    };
+                }
+                content.appendChild(item);
+            });
+        } catch (err) {
+            // Silenciar error de notificaciones
+        }
+    }
+
+    // Marcar todas como leídas
+    const btnLeer = document.getElementById('btnMarcarLeidas');
+    if (btnLeer) {
+        btnLeer.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            try {
+                await fetch('http://localhost:3000/api/notificaciones/leer', {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                cargarNotificaciones();
+            } catch (err) {
+                // Silenciar
+            }
+        });
+    }
+
     obtenerTickets();
     cargarTecnicos();
+    cargarNotificaciones();
+
+    // Refrescar notificaciones cada 30 segundos
+    setInterval(cargarNotificaciones, 30000);
 });

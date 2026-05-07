@@ -72,24 +72,24 @@
                     <button class="btn-icon" id="darkModeToggle" title="Modo Oscuro" style="margin-right: 8px;">
                         <i class="ph ph-moon"></i>
                     </button>
-                    <button class="btn-create-ticket" onclick="document.getElementById('titulo').focus()">Nuevo Ticket</button>
+                    <button class="btn-create-ticket" onclick="cambiarVista('tickets'); setTimeout(() => document.getElementById('titulo').focus(), 300)">Nuevo Ticket</button>
                     <div class="notifications" id="notificationToggle">
                         <i class="ph ph-bell"></i>
-                        <span class="badge" id="notifBadge">2</span>
+                        <span class="badge" id="notifBadge" style="display:none;">0</span>
                         <div class="dropdown-menu" id="notifMenu">
-                            <div class="notif-item">
-                                <p><strong>Nuevo ticket</strong> #45 asignado a ti.</p>
-                                <small>Hace 5 min</small>
+                            <div class="notif-header" style="padding:12px 16px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+                                <strong style="font-size:0.9rem;">Notificaciones</strong>
+                                <button id="btnMarcarLeidas" style="background:none; border:none; color:var(--action-primary); cursor:pointer; font-size:0.8rem; font-weight:500;">Marcar leídas</button>
                             </div>
-                            <div class="notif-item">
-                                <p><strong>Respuesta</strong> en ticket #32.</p>
-                                <small>Hace 1 hora</small>
+                            <div id="notifContent">
+                                <div style="padding:24px 16px; text-align:center; color:var(--text-secondary); font-size:0.85rem;">Sin notificaciones</div>
                             </div>
                         </div>
                     </div>
                     <div class="user-profile">
                         <div class="avatar" id="avatarLetra">U</div>
                         <span id="usuarioActivo">Usuario</span>
+                        <span id="rolBadge" class="rol-badge"></span>
                         <i class="ph ph-caret-down"></i>
                         <div class="dropdown-menu">
                             <button onclick="logout()"><i class="ph ph-sign-out"></i> Cerrar sesión</button>
@@ -102,6 +102,12 @@
                 
                 <!-- VIEW: DASHBOARD -->
                 <section id="view-dashboard" class="view-section active">
+                    <!-- Saludo dinámico -->
+                    <div class="greeting-section" style="margin-bottom:32px;">
+                        <h2 id="greetingText" style="margin:0 0 4px 0; font-size:1.6rem; font-weight:600;">Bienvenido</h2>
+                        <p style="margin:0; color:var(--text-secondary); font-size:0.95rem;" id="greetingSubtext">Aquí tienes un resumen de tu actividad</p>
+                    </div>
+
                     <div class="kpi-grid">
                         <div class="kpi-card">
                             <div class="kpi-icon" style="background:#e0f2fe; color:#0284c7;"><i class="ph-fill ph-ticket"></i></div>
@@ -122,6 +128,13 @@
                             <div class="kpi-data">
                                 <h3>Resueltos</h3>
                                 <p id="kpi-resueltos">0</p>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon" style="background:#f3e8ff; color:#9333ea;"><i class="ph-fill ph-chart-pie"></i></div>
+                            <div class="kpi-data">
+                                <h3>Tasa Resolución</h3>
+                                <p id="kpi-tasa">0%</p>
                             </div>
                         </div>
                     </div>
@@ -221,37 +234,78 @@
 
                 <!-- VIEW: CLIENTES -->
                 <section id="view-clientes" class="view-section">
-                    <div class="dashboard-widgets" style="grid-template-columns: 1fr;">
-                        <div class="widget-card">
-                            <div class="widget-header">
-                                <h3>Directorio de Clientes</h3>
-                                <button class="btn-primary">Añadir Cliente</button>
-                            </div>
-                            <table class="table-container" style="width:100%; text-align:left; border-collapse: collapse;">
-                                <thead>
-                                    <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-size:0.8rem; text-transform:uppercase;">
-                                        <th style="padding:12px;">Empresa</th>
-                                        <th style="padding:12px;">Contacto Principal</th>
-                                        <th style="padding:12px;">SLA</th>
-                                        <th style="padding:12px;">Tickets Activos</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr style="border-bottom: 1px solid var(--border-color);">
-                                        <td style="padding:12px; font-weight:500;">TechSolutions S.A.</td>
-                                        <td style="padding:12px; color:var(--text-secondary);">carlos@techsolutions.com</td>
-                                        <td style="padding:12px;"><span style="background:#dcfce7; color:#16a34a; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:500;">Premium 24/7</span></td>
-                                        <td style="padding:12px;">3</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding:12px; font-weight:500;">Consultores Globales</td>
-                                        <td style="padding:12px; color:var(--text-secondary);">maria@consultores.com</td>
-                                        <td style="padding:12px;"><span style="background:#f3f4f6; color:var(--text-secondary); padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:500;">Estándar</span></td>
-                                        <td style="padding:12px;">1</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                    <div class="kpi-grid" style="margin-bottom:24px;">
+                        <div class="kpi-card">
+                            <div class="kpi-icon" style="background:#e0f2fe; color:#0284c7;"><i class="ph-fill ph-users"></i></div>
+                            <div class="kpi-data"><h3>Total Clientes</h3><p>5</p></div>
                         </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon" style="background:#dcfce7; color:#16a34a;"><i class="ph-fill ph-crown"></i></div>
+                            <div class="kpi-data"><h3>Premium</h3><p>2</p></div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon" style="background:#fef3c7; color:#d97706;"><i class="ph-fill ph-ticket"></i></div>
+                            <div class="kpi-data"><h3>Tickets Activos</h3><p id="clientes-tickets-activos">7</p></div>
+                        </div>
+                    </div>
+                    <div class="widget-card">
+                        <div class="widget-header">
+                            <h3>Directorio de Clientes</h3>
+                        </div>
+                        <table style="width:100%; text-align:left; border-collapse:collapse;">
+                            <thead>
+                                <tr style="border-bottom:2px solid var(--border-color); color:var(--text-secondary); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em;">
+                                    <th style="padding:12px;">Cliente</th>
+                                    <th style="padding:12px;">Contacto</th>
+                                    <th style="padding:12px;">Teléfono</th>
+                                    <th style="padding:12px;">Plan</th>
+                                    <th style="padding:12px;">Tickets</th>
+                                    <th style="padding:12px;">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="border-bottom:1px solid var(--border-color);">
+                                    <td style="padding:14px 12px;"><div style="display:flex; align-items:center; gap:10px;"><div style="width:32px;height:32px;border-radius:8px;background:#dbeafe;color:#1d4ed8;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.8rem;">TS</div><span style="font-weight:500;">TechSolutions S.A.</span></div></td>
+                                    <td style="padding:14px 12px; color:var(--text-secondary); font-size:0.9rem;">carlos@techsolutions.com</td>
+                                    <td style="padding:14px 12px; color:var(--text-secondary); font-size:0.9rem;">+504 9876-5432</td>
+                                    <td style="padding:14px 12px;"><span style="background:#dcfce7;color:#16a34a;padding:4px 10px;border-radius:4px;font-size:0.8rem;font-weight:500;">Premium</span></td>
+                                    <td style="padding:14px 12px; font-weight:600;">3</td>
+                                    <td style="padding:14px 12px;"><span style="display:inline-flex;align-items:center;gap:6px;font-size:0.8rem;color:#16a34a;"><i class="ph-fill ph-circle" style="font-size:8px;"></i> Activo</span></td>
+                                </tr>
+                                <tr style="border-bottom:1px solid var(--border-color);">
+                                    <td style="padding:14px 12px;"><div style="display:flex; align-items:center; gap:10px;"><div style="width:32px;height:32px;border-radius:8px;background:#f3e8ff;color:#9333ea;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.8rem;">CG</div><span style="font-weight:500;">Consultores Globales</span></div></td>
+                                    <td style="padding:14px 12px; color:var(--text-secondary); font-size:0.9rem;">maria@consultores.com</td>
+                                    <td style="padding:14px 12px; color:var(--text-secondary); font-size:0.9rem;">+504 2234-1100</td>
+                                    <td style="padding:14px 12px;"><span style="background:#f3f4f6;color:var(--text-secondary);padding:4px 10px;border-radius:4px;font-size:0.8rem;font-weight:500;">Estándar</span></td>
+                                    <td style="padding:14px 12px; font-weight:600;">1</td>
+                                    <td style="padding:14px 12px;"><span style="display:inline-flex;align-items:center;gap:6px;font-size:0.8rem;color:#16a34a;"><i class="ph-fill ph-circle" style="font-size:8px;"></i> Activo</span></td>
+                                </tr>
+                                <tr style="border-bottom:1px solid var(--border-color);">
+                                    <td style="padding:14px 12px;"><div style="display:flex; align-items:center; gap:10px;"><div style="width:32px;height:32px;border-radius:8px;background:#fef3c7;color:#d97706;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.8rem;">IM</div><span style="font-weight:500;">InnovaMedia Corp</span></div></td>
+                                    <td style="padding:14px 12px; color:var(--text-secondary); font-size:0.9rem;">pedro@innovamedia.io</td>
+                                    <td style="padding:14px 12px; color:var(--text-secondary); font-size:0.9rem;">+504 3312-4455</td>
+                                    <td style="padding:14px 12px;"><span style="background:#dcfce7;color:#16a34a;padding:4px 10px;border-radius:4px;font-size:0.8rem;font-weight:500;">Premium</span></td>
+                                    <td style="padding:14px 12px; font-weight:600;">2</td>
+                                    <td style="padding:14px 12px;"><span style="display:inline-flex;align-items:center;gap:6px;font-size:0.8rem;color:#16a34a;"><i class="ph-fill ph-circle" style="font-size:8px;"></i> Activo</span></td>
+                                </tr>
+                                <tr style="border-bottom:1px solid var(--border-color);">
+                                    <td style="padding:14px 12px;"><div style="display:flex; align-items:center; gap:10px;"><div style="width:32px;height:32px;border-radius:8px;background:#fee2e2;color:#dc2626;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.8rem;">LR</div><span style="font-weight:500;">LogiRed Express</span></div></td>
+                                    <td style="padding:14px 12px; color:var(--text-secondary); font-size:0.9rem;">ana@logired.hn</td>
+                                    <td style="padding:14px 12px; color:var(--text-secondary); font-size:0.9rem;">+504 8800-1234</td>
+                                    <td style="padding:14px 12px;"><span style="background:#f3f4f6;color:var(--text-secondary);padding:4px 10px;border-radius:4px;font-size:0.8rem;font-weight:500;">Estándar</span></td>
+                                    <td style="padding:14px 12px; font-weight:600;">1</td>
+                                    <td style="padding:14px 12px;"><span style="display:inline-flex;align-items:center;gap:6px;font-size:0.8rem;color:#d97706;"><i class="ph-fill ph-circle" style="font-size:8px;"></i> Pendiente</span></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:14px 12px;"><div style="display:flex; align-items:center; gap:10px;"><div style="width:32px;height:32px;border-radius:8px;background:#e0f2fe;color:#0284c7;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.8rem;">DS</div><span style="font-weight:500;">DataSoft Labs</span></div></td>
+                                    <td style="padding:14px 12px; color:var(--text-secondary); font-size:0.9rem;">jose@datasoft.com</td>
+                                    <td style="padding:14px 12px; color:var(--text-secondary); font-size:0.9rem;">+504 2200-8899</td>
+                                    <td style="padding:14px 12px;"><span style="background:#fef3c7;color:#d97706;padding:4px 10px;border-radius:4px;font-size:0.8rem;font-weight:500;">Básico</span></td>
+                                    <td style="padding:14px 12px; font-weight:600;">0</td>
+                                    <td style="padding:14px 12px;"><span style="display:inline-flex;align-items:center;gap:6px;font-size:0.8rem;color:#6b7280;"><i class="ph-fill ph-circle" style="font-size:8px;"></i> Inactivo</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </section>
 
@@ -424,6 +478,21 @@
         <div id="listaComentarios" class="comentarios-list"></div>
         <textarea id="nuevoComentario" placeholder="Agregar comentario..." class="modal-textarea"></textarea>
         <button onclick="agregarComentario()" class="btn-primary w-100">Agregar Comentario</button>
+    </div>
+
+    <!-- Modal de confirmación para eliminar -->
+    <div id="confirmModal" class="modal-card" style="display:none; max-width:380px; text-align:center;">
+        <div style="margin-bottom:20px;">
+            <div style="width:56px; height:56px; border-radius:50%; background:#fef2f2; color:#ef4444; display:flex; align-items:center; justify-content:center; font-size:1.5rem; margin:0 auto 16px auto;">
+                <i class="ph-fill ph-warning"></i>
+            </div>
+            <h3 style="margin:0 0 8px 0; font-size:1.1rem;">Eliminar ticket</h3>
+            <p style="margin:0; color:var(--text-secondary); font-size:0.9rem;">¿Estás seguro? Esta acción no se puede deshacer.</p>
+        </div>
+        <div style="display:flex; gap:12px; justify-content:center;">
+            <button id="confirmCancelar" class="btn-secondary" style="flex:1;">Cancelar</button>
+            <button id="confirmAceptar" class="btn-primary" style="flex:1; background:#ef4444;">Eliminar</button>
+        </div>
     </div>
 
     <div id="mensajes" class="toast-container"></div>

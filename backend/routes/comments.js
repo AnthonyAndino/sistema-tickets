@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const verificarToken = require('../middleware/authMiddleware');
+const { crearNotificacion } = require('./notifications');
 
 // Obtener comentarios de un ticket
 router.get('/:ticketId', verificarToken, (req, res) => {
@@ -28,8 +29,44 @@ router.post('/', verificarToken, (req, res) => {
     db.query('INSERT INTO comentarios (ticket_id, user_id, comentario) VALUES (?, ?, ?)', 
         [ticket_id, req.user.id, comentario], (err, result) => {
             if (err) return res.status(500).json(err);
+
+            // Generar notificaciones por el comentario
+            db.query('SELECT user_id, titulo FROM tickets WHERE id = ?', [ticket_id], (err2, ticketData) => {
+                if (!err2 && ticketData && ticketData.length > 0) {
+                    const ownerId = ticketData[0].user_id;
+                    const ticketTitulo = ticketData[0].titulo;
+
+                    if (req.user.rol === 'admin') {
+                        // Admin comenta → notificar al creador del ticket
+                        if (ownerId && ownerId !== req.user.id) {
+                            crearNotificacion(
+                                ownerId,
+                                'nuevo_comentario',
+                                `${req.user.username} comentó en tu ticket "${ticketTitulo}"`,
+                                parseInt(ticket_id)
+                            );
+                        }
+                    } else {
+                        // Usuario comenta → notificar a los administradores
+                        db.query("SELECT id FROM usuarios WHERE rol = 'admin'", (err3, admins) => {
+                            if (!err3 && admins) {
+                                admins.forEach(admin => {
+                                    crearNotificacion(
+                                        admin.id,
+                                        'nuevo_comentario',
+                                        `${req.user.username} comentó en ticket #${ticket_id}: "${ticketTitulo}"`,
+                                        parseInt(ticket_id)
+                                    );
+                                });
+                            }
+                        });
+                    }
+                }
+            });
+
             res.json({ mensaje: 'Comentario agregado correctamente' });
         });
 });
 
 module.exports = router;
+

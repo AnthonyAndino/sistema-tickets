@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../db');
 const verificarToken = require('../middleware/authMiddleware');
 const { verificarRol } = require('../middleware/roleMiddleware');
+const { crearNotificacion } = require('./notifications');
 
 // Crear ticket (admin y usuario) - se asigna automaticamente al jefe
 router.post('/', verificarToken, (req, res) => {
@@ -28,7 +29,24 @@ router.post('/', verificarToken, (req, res) => {
         db.query(sql, [titulo, descripcion, prioridadFinal, jefeId, req.user.id], (err, result) => {
             if (err) return res.status(500).json(err);
 
-            res.json({ mensaje: 'Ticket creado y asignado al jefe' });
+            // Notificar a todos los administradores sobre el nuevo ticket
+            const ticketId = result.insertId;
+            db.query("SELECT id FROM usuarios WHERE rol = 'admin'", (err2, admins) => {
+                if (!err2 && admins) {
+                    admins.forEach(admin => {
+                        if (admin.id !== req.user.id) {
+                            crearNotificacion(
+                                admin.id, 
+                                'nuevo_ticket', 
+                                `${req.user.username} creó un nuevo ticket: "${titulo}" (${prioridadFinal})`, 
+                                ticketId
+                            );
+                        }
+                    });
+                }
+            });
+
+            res.json({ mensaje: 'Ticket creado y asignado al jefe', ticketId });
         });
     });
 });
@@ -58,7 +76,8 @@ router.get('/', verificarToken, (req, res) => {
 // Editar ticket (solo admin)
 router.put('/:id', verificarToken, verificarRol('admin'), (req, res) => {
     const { id } = req.params;
-    const { titulo, descripcion, estado, tecnico_id } = req.body;
+    const body = req.body || {};
+    const { titulo, descripcion, estado, tecnico_id } = body;
 
     let sql = 'UPDATE tickets SET';
     let params = [];
@@ -94,6 +113,24 @@ router.put('/:id', verificarToken, verificarRol('admin'), (req, res) => {
 
     db.query(sql, params, (err, result) => {
         if (err) return res.status(500).json(err);
+
+        // Si cambió el estado, notificar al creador del ticket
+        if (estado) {
+            db.query('SELECT user_id, titulo FROM tickets WHERE id = ?', [id], (err2, ticketData) => {
+                if (!err2 && ticketData && ticketData.length > 0) {
+                    const ownerId = ticketData[0].user_id;
+                    const ticketTitulo = ticketData[0].titulo;
+                    if (ownerId && ownerId !== req.user.id) {
+                        crearNotificacion(
+                            ownerId, 
+                            'estado_cambio', 
+                            `Tu ticket "${ticketTitulo}" fue actualizado a: ${estado}`, 
+                            parseInt(id)
+                        );
+                    }
+                }
+            });
+        }
 
         res.json({ mensaje: 'Ticket actualizado' });
     });

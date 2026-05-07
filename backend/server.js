@@ -21,10 +21,12 @@ app.use('/api/tickets', ticketRoutes);
 const tecnicosRoutes = require('./routes/tecnicos');
 const statsRoutes = require('./routes/stats');
 const commentsRoutes = require('./routes/comments');
+const notificationsRoutes = require('./routes/notifications');
 
 app.use('/api/tecnicos', tecnicosRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/comentarios', commentsRoutes);
+app.use('/api/notificaciones', notificationsRoutes);
 
 const PORT = 3000;
 app.listen(PORT, function() {
