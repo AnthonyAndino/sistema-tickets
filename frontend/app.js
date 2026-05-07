@@ -95,34 +95,26 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if(viewId === 'view-calendar') {
             const grid = document.getElementById('calendar-grid');
             grid.className = 'calendar-view'; // Override generic grid layout
-            grid.innerHTML = `
+            
+            let html = `
                 <div class="calendar-header-row">
                     <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
                 </div>
                 <div class="calendar-grid-body">
-                    <div class="calendar-day"><span class="calendar-day-num">1</span></div>
-                    <div class="calendar-day"><span class="calendar-day-num">2</span></div>
-                    <div class="calendar-day"><span class="calendar-day-num">3</span></div>
-                    <div class="calendar-day"><span class="calendar-day-num">4</span>
-                        <div class="calendar-event">#TCK-145 Backup MySQL</div>
-                    </div>
-                    <div class="calendar-day"><span class="calendar-day-num">5</span></div>
-                    <div class="calendar-day"><span class="calendar-day-num">6</span></div>
-                    <div class="calendar-day"><span class="calendar-day-num">7</span></div>
-
-                    <div class="calendar-day"><span class="calendar-day-num">8</span></div>
-                    <div class="calendar-day"><span class="calendar-day-num">9</span></div>
-                    <div class="calendar-day today"><span class="calendar-day-num">10</span>
-                        <div class="calendar-event ev-high">#TCK-158 Outage ISP</div>
-                    </div>
-                    <div class="calendar-day"><span class="calendar-day-num">11</span></div>
-                    <div class="calendar-day"><span class="calendar-day-num">12</span>
-                        <div class="calendar-event ev-med">#TCK-169 Eq Setup</div>
-                    </div>
-                    <div class="calendar-day"><span class="calendar-day-num">13</span></div>
-                    <div class="calendar-day"><span class="calendar-day-num">14</span></div>
-                </div>
             `;
+            
+            for (let i = 1; i <= 30; i++) {
+                let events = '';
+                let extraClass = '';
+                if(i === 10) { extraClass = 'today'; events = '<div class="calendar-event ev-high">#TCK-158 Outage ISP</div>'; }
+                if(i === 4) { events = '<div class="calendar-event">#TCK-145 Backup MySQL</div>'; }
+                if(i === 12) { events = '<div class="calendar-event ev-med">#TCK-169 Eq Setup</div>'; }
+                if(i === 22) { events = '<div class="calendar-event ev-med">#TCK-182 App Update</div>'; }
+                if(i === 28) { events = '<div class="calendar-event">#TCK-201 Maint</div>'; }
+
+                html += `<div class="calendar-day ${extraClass}"><span class="calendar-day-num">${i}</span>${events}</div>`;
+            }
+            grid.innerHTML = html + `</div>`;
         }
     }
 
@@ -139,7 +131,6 @@ document.addEventListener('DOMContentLoaded', () => {
             mostrarTickets(tickets);
             calcularStats(tickets);
         } catch (err) {
-            console.error(err);
             if(window.mostrarMensaje) mostrarMensaje(err.message, "error");
         }
     }
@@ -271,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 lista.appendChild(div);
             });
         } catch (err) {
-            console.error(err);
+            // Removed for clean console
         }
     };
 
@@ -379,7 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 select.appendChild(option);
             });
         } catch (err) {
-            console.error(err);
+            // Removed for clean console
         }
     }
 

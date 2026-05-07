@@ -18,7 +18,7 @@ function conectarWebSocket() {
                 socket.emit('join', payload.id);
             }
         } catch (e) {
-            console.error('Error al decodificar token para WebSocket');
+            // Ignorado intencionalmente para limpiar consola
         }
     });
 
