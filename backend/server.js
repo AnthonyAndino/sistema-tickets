@@ -27,7 +27,7 @@ app.use('/api/tecnicos', tecnicosRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/comentarios', commentsRoutes);
 app.use('/api/upload', uploadRoutes);
-app.use('/api/historial', historyRoutes);
+app.use('/api/historial', historyRoutes.router);
 app.use('/api/recovery', recoveryRoutes);
 
 app.use(errorHandler);

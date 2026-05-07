@@ -85,12 +85,11 @@ router.get('/', verificarToken, (req, res) => {
         res.json(results);
     });
 });
-});
 
 // Editar ticket (solo admin)
 router.put('/:id', verificarToken, verificarRol('admin'), (req, res) => {
     const { id } = req.params;
-    const { titulo, descripcion, estado, tecnico_id } = req.body;
+    const { titulo, descripcion, estado, tecnico_id } = req.body || {};
 
     let sql = 'UPDATE tickets SET';
     let params = [];
