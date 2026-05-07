@@ -241,6 +241,20 @@ Authorization: Bearer <token>
 | Login | `login.html` | Página de inicio de sesión y registro |
 | Estadísticas | `dashboard.html` | Panel de estadísticas (solo admin) |
 
+## Capturas de Pantalla
+
+### Login
+![Login](captures/login.png)
+
+### Dashboard Principal
+![Inicio](captures/inicio.png)
+
+### Gestión de Tickets
+![Tickets](captures/tickets.png)
+
+### Vista de Administrador
+![Vista Admin](captures/vista_admin.png)
+
 ## Scripts Disponibles
 
 ```bash
