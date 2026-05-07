@@ -38,14 +38,15 @@ router.get('/', verificarToken, (req, res) => {
     let sql = `SELECT tickets.*, tecnicos.nombre AS tecnico, usuarios.username 
                FROM tickets 
                LEFT JOIN tecnicos ON tickets.tecnico_id = tecnicos.id
-               LEFT JOIN usuarios ON tickets.user_id = usuarios.id
-               ORDER BY FIELD(prioridad, 'Urgente', 'Alta', 'Media', 'Baja')`;
+               LEFT JOIN usuarios ON tickets.user_id = usuarios.id`;
     let params = [];
     
     if (req.user.rol !== 'admin') {
         sql += ' WHERE tickets.user_id = ?';
         params.push(req.user.id);
     }
+    
+    sql += ` ORDER BY FIELD(prioridad, 'Urgente', 'Alta', 'Media', 'Baja')`;
     
     db.query(sql, params, (err, results) => {
         if (err) return res.status(500).json(err);
