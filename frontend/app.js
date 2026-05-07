@@ -8,21 +8,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const username = localStorage.getItem('username');
     const rol = localStorage.getItem('rol');
-    document.getElementById('usuarioActivo').textContent = `Usuario: ${username} (${rol})`;
+    document.getElementById('usuarioActivo').textContent = username || 'Usuario';
+    const avatarEl = document.getElementById('avatarLetra');
+    if(avatarEl) avatarEl.textContent = username ? username.charAt(0).toUpperCase() : 'U';
 
     // Mostrar asignación de tecnico solo para admin
     if (rol === 'admin') {
         document.getElementById('asignarJefe').style.display = 'block';
     }
 
-    function getPrioridadColor(prioridad) {
+    function getPrioridadClass(prioridad) {
         switch(prioridad) {
-            case 'Urgente': return 'darkred';
-            case 'Alta': return 'red';
-            case 'Baja': return 'green';
-            default: return 'orange';
+            case 'Urgente': return 'pri-urgente';
+            case 'Alta': return 'pri-alta';
+            case 'Baja': return 'pri-baja';
+            default: return 'pri-media';
         }
     }
+
+    window.allTickets = [];
 
     async function obtenerTickets() {
         mostrarLoading(true);
@@ -34,7 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!res.ok) throw new Error('Error al obtener tickets');
 
             const tickets = await res.json();
+            window.allTickets = tickets;
             mostrarTickets(tickets);
+            actualizarDashboardKPIs(tickets);
         } catch (err) {
             mostrarMensaje(err.message, "error");
         } finally {
@@ -48,36 +54,64 @@ document.addEventListener('DOMContentLoaded', () => {
         lista.innerHTML = '';
 
         const rol = localStorage.getItem('rol');
+        let estadoFiltro = window.estadoFiltroActual || '';
 
-        tickets.forEach(ticket => {
+        let ticketsMostrados = tickets;
+        if (estadoFiltro && estadoFiltro !== 'todos') {
+            ticketsMostrados = tickets.filter(t => t.estado === estadoFiltro);
+        }
+
+        ticketsMostrados.forEach(ticket => {
             const div = document.createElement('div');
-            div.className = 'ticket';
-            div.style.borderLeft = ticket.estado === 'Resuelto' ? '5px solid green' : `5px solid ${getPrioridadColor(ticket.prioridad)}`;
-            div.style.cursor = rol === 'admin' ? 'pointer' : 'default';
+            div.className = 'ticket-row';
             
-            // Click en ticket para admin
-            if (rol === 'admin') {
-                div.onclick = () => mostrarDetalleTicket(ticket);
-            }
+            // Click en ticket para detalle
+            div.onclick = (e) => {
+                if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT') {
+                    mostrarDetalleTicket(ticket);
+                }
+            };
+            div.style.cursor = 'pointer';
 
             let acciones = '';
             if (rol === 'admin') {
                 acciones = `
-                    <button onclick="event.stopPropagation(); resolverTicket(${ticket.id})">Resolver</button>
-                    <button onclick="event.stopPropagation(); eliminarTicket(${ticket.id})">Eliminar</button>
-                    <button onclick="event.stopPropagation(); editarTicket(${JSON.stringify(ticket).replace(/"/g, '&quot;')})">Editar</button>
-                    <button onclick="event.stopPropagation(); mostrarComentarios(${ticket.id})">Comentarios</button>
+                    <button class="btn-action-icon success" onclick="event.stopPropagation(); resolverTicket(${ticket.id})" title="Resolver">
+                        <i class="ph ph-check"></i>
+                    </button>
+                    <button class="btn-action-icon danger" onclick="event.stopPropagation(); eliminarTicket(${ticket.id})" title="Eliminar">
+                        <i class="ph ph-trash"></i>
+                    </button>
+                    <button class="btn-action-icon" onclick="event.stopPropagation(); editarTicket(${JSON.stringify(ticket).replace(/"/g, '&quot;')})" title="Editar">
+                        <i class="ph ph-pencil-simple"></i>
+                    </button>
+                    <button class="btn-action-icon" onclick="event.stopPropagation(); mostrarComentarios(${ticket.id})" title="Notas">
+                        <i class="ph ph-note-pencil"></i>
+                    </button>
+                `;
+            } else {
+                acciones = `
+                    <button class="btn-action-icon" onclick="event.stopPropagation(); mostrarComentarios(${ticket.id})" title="Notas">
+                        <i class="ph ph-note-pencil"></i>
+                    </button>
                 `;
             }
 
+            const fechaFormat = ticket.fecha_creacion ? new Date(ticket.fecha_creacion).toLocaleDateString() : 'N/A';
+            const estadoClase = ticket.estado === 'Pendiente' ? 'status-pendiente' : ticket.estado === 'Resuelto' ? 'status-resuelto' : 'status-nuevo';
+
             div.innerHTML = `
-                <h3>${ticket.titulo}</h3>
-                <p>${ticket.descripcion}</p>
-                <p>Usuario: ${ticket.username || 'No asignado'}</p>
-                <p>Técnico: ${ticket.tecnico || 'No asignado'}</p>
-                <p>Prioridad: <span style="color: ${ticket.prioridad === 'Urgente' ? 'red' : ticket.prioridad === 'Alta' ? 'orange' : 'inherit'}">${ticket.prioridad}</span></p>
-                <p>Estado: ${ticket.estado}</p>
-                ${acciones}
+                <div class="col-checkbox"><input type="checkbox"></div>
+                <div class="col-id t-id">#${ticket.id}</div>
+                <div class="col-date">${fechaFormat}</div>
+                <div class="col-name">${ticket.username || 'N/A'}</div>
+                <div class="col-subject t-subject"><i class="ph-fill ph-user"></i> ${ticket.titulo}</div>
+                <div class="col-status t-status ${estadoClase}">${ticket.estado}</div>
+                <div class="col-replier">${ticket.tecnico || '-'}</div>
+                <div class="col-priority t-priority ${getPrioridadClass(ticket.prioridad)}">
+                    <i class="ph-fill ph-flag"></i> ${ticket.prioridad}
+                </div>
+                <div class="ticket-actions">${acciones}</div>
             `;
 
             lista.appendChild(div);
@@ -88,19 +122,42 @@ document.addEventListener('DOMContentLoaded', () => {
         const detalle = document.getElementById('ticketDetalle');
         if (!detalle) return;
 
+        const prioClass = getPrioridadClass(ticket.prioridad);
+        const estadoClass = ticket.estado === 'Pendiente' ? 'status-pendiente' : ticket.estado === 'Resuelto' ? 'status-resuelto' : 'status-nuevo';
+
         detalle.innerHTML = `
-            <div class="detalle-contenido">
-                <h3>${ticket.titulo}</h3>
-                <p><strong>Descripción:</strong> ${ticket.descripcion}</p>
-                <p><strong>Usuario:</strong> ${ticket.username || 'No asignado'}</p>
-                <p><strong>Prioridad:</strong> ${ticket.prioridad}</p>
-                <p><strong>Estado:</strong> ${ticket.estado}</p>
-                <label>Asignar Técnico:</label>
-                <select id="tecnicoAsignar">
-                    <option value="">Seleccionar tecnico</option>
-                </select>
-                <button onclick="asignarTecnico(${ticket.id})">Asignar</button>
-                <button onclick="cerrarDetalle()">Cerrar</button>
+            <div class="detalle-contenido" style="padding: 10px;">
+                <h3 style="margin: 0 0 16px 0; font-size: 1.5rem; font-weight: 600;">${ticket.titulo}</h3>
+                <div style="display:flex; gap:12px; margin-bottom: 24px; flex-wrap: wrap;">
+                    <span class="t-priority ${prioClass}" style="display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:6px; font-size:0.8rem; font-weight:500;">
+                        <i class="ph-fill ph-flag"></i> ${ticket.prioridad}
+                    </span>
+                    <span class="t-status ${estadoClass}" style="display:inline-flex; align-items:center; padding:4px 8px; border-radius:6px; font-size:0.8rem; font-weight:500;">
+                        ${ticket.estado}
+                    </span>
+                    <span style="display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:6px; background:var(--bg-surface-hover); color:var(--text-secondary); font-size:0.8rem;">
+                        <i class="ph-fill ph-user"></i> ${ticket.username || 'Usuario'}
+                    </span>
+                </div>
+                
+                <div style="background:var(--bg-main); padding:16px; border-radius:8px; border:1px solid var(--border-color); min-height:80px;">
+                    <p style="margin:0; font-size:0.95rem; color:var(--text-primary); line-height:1.5;">
+                        ${ticket.descripcion || '<em style="color:var(--text-secondary);">Sin descripción</em>'}
+                    </p>
+                </div>
+            
+                <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:24px; border-top:1px solid var(--border-color); padding-top:24px;">
+                    <div>
+                        <label style="display:block; font-size:0.8rem; font-weight:500; color:var(--text-secondary); margin-bottom:8px;">Asignar Técnico</label>
+                        <select id="tecnicoAsignar" class="modal-input" style="min-width:200px; margin:0;">
+                            <option value="">Seleccionar técnico</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; gap:12px;">
+                        <button class="btn-primary" onclick="asignarTecnico(${ticket.id})">Asignar</button>
+                        <button class="btn-small" onclick="cerrarDetalle()">Cerrar</button>
+                    </div>
+                </div>
             </div>
         `;
         detalle.style.display = 'block';
@@ -363,8 +420,16 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'login.html';
     };
 
+    window.estadoFiltroActual = '';
+
     window.filtrar = (estado) => {
-        document.getElementById('filtroEstado').value = estado === 'todos' ? '' : estado;
+        window.estadoFiltroActual = estado === 'todos' ? '' : estado;
+        
+        if(event && event.currentTarget) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+        
         aplicarFiltros();
     };
 
@@ -372,15 +437,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const token = localStorage.getItem('token');
         mostrarLoading(true);
         
-        const estado = document.getElementById('filtroEstado').value;
-        const prioridad = document.getElementById('filtroPrioridad').value;
-        const busqueda = document.getElementById('busqueda').value;
+        const estado = window.estadoFiltroActual;
         
         let url = 'http://localhost:3000/api/tickets';
         const params = new URLSearchParams();
         if (estado) params.append('estado', estado);
-        if (prioridad) params.append('prioridad', prioridad);
-        if (busqueda) params.append('busqueda', busqueda);
         if (params.toString()) url += '?' + params.toString();
         
         try {
@@ -397,13 +458,154 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.limpiarFiltros = () => {
-        document.getElementById('busqueda').value = '';
-        document.getElementById('filtroEstado').value = '';
-        document.getElementById('filtroPrioridad').value = '';
+        window.estadoFiltroActual = '';
         obtenerTickets();
     };
 
     document.getElementById('ticketForm')?.addEventListener('submit', crearTicket);
+
+    // SPA Routing Logic
+    window.cambiarVista = (viewId) => {
+        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+        
+        const targetView = document.getElementById(`view-${viewId}`);
+        if(targetView) {
+            targetView.classList.add('active');
+        } else {
+            const placeholder = document.getElementById('view-placeholder');
+            if(placeholder) placeholder.classList.add('active');
+        }
+        
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        const navItem = document.querySelector(`.nav-item[data-view="${viewId}"]`);
+        if(navItem) navItem.classList.add('active');
+    };
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const viewId = item.getAttribute('data-view');
+            cambiarVista(viewId);
+        });
+    });
+
+    // Search Logic
+    const searchInput = document.getElementById('searchInput');
+    if(searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = window.allTickets.filter(t => 
+                (t.titulo && t.titulo.toLowerCase().includes(query)) || 
+                (t.username && t.username.toLowerCase().includes(query)) ||
+                (t.id && t.id.toString().includes(query))
+            );
+            mostrarTickets(filtered);
+            
+            if(query.length > 0) {
+                cambiarVista('tickets');
+            }
+        });
+    }
+
+    // Dark mode logic
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    if (darkModeToggle) {
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            darkModeToggle.innerHTML = '<i class="ph-fill ph-sun"></i>';
+        }
+        
+        darkModeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+                darkModeToggle.innerHTML = '<i class="ph-fill ph-sun"></i>';
+            } else {
+                localStorage.setItem('theme', 'light');
+                darkModeToggle.innerHTML = '<i class="ph ph-moon"></i>';
+            }
+        });
+    }
+
+    // KPIs & Calendar
+    function actualizarDashboardKPIs(tickets) {
+        const kpiTotal = document.getElementById('kpi-total');
+        if(kpiTotal) kpiTotal.textContent = tickets.length;
+        
+        const pendientes = tickets.filter(t => t.estado !== 'Resuelto').length;
+        const resueltos = tickets.filter(t => t.estado === 'Resuelto').length;
+        
+        const kpiPendientes = document.getElementById('kpi-pendientes');
+        if(kpiPendientes) kpiPendientes.textContent = pendientes;
+        
+        const kpiResueltos = document.getElementById('kpi-resueltos');
+        if(kpiResueltos) kpiResueltos.textContent = resueltos;
+        
+        const cTodos = document.getElementById('count-todos');
+        if(cTodos) cTodos.textContent = tickets.length;
+        
+        const cPendientes = document.getElementById('count-pendientes');
+        if(cPendientes) cPendientes.textContent = pendientes;
+        
+        const cResueltos = document.getElementById('count-resueltos');
+        if(cResueltos) cResueltos.textContent = resueltos;
+        
+        generarCalendario(tickets);
+    }
+
+    function generarCalendario(tickets) {
+        const grid = document.querySelector('.calendar-grid');
+        if(!grid) return;
+        
+        const headers = Array.from(grid.querySelectorAll('.cal-day-header'));
+        grid.innerHTML = '';
+        headers.forEach(h => grid.appendChild(h));
+        
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        
+        const display = document.getElementById('monthDisplay');
+        if(display) {
+            const monthName = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(now);
+            display.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+        }
+        
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        
+        for(let i=0; i<firstDay; i++) {
+            const div = document.createElement('div');
+            div.className = 'cal-day';
+            div.style.color = 'transparent';
+            grid.appendChild(div);
+        }
+        
+        for(let i=1; i<=daysInMonth; i++) {
+            const div = document.createElement('div');
+            div.className = 'cal-day';
+            div.textContent = i;
+            
+            if(i === now.getDate()) div.classList.add('today');
+            
+            const dayTickets = tickets.filter(t => {
+                if(!t.fecha_creacion) return false;
+                const d = new Date(t.fecha_creacion);
+                return d.getDate() === i && d.getMonth() === month && d.getFullYear() === year;
+            });
+            
+            if(dayTickets.length > 0) {
+                div.classList.add('has-event');
+                div.title = dayTickets.map(t => `#${t.id}: ${t.titulo}`).join('\n');
+                const badge = document.createElement('span');
+                badge.style.cssText = 'display:block; font-size:0.65rem; background:var(--action-primary); color:white; border-radius:4px; padding:2px; margin-top:4px; font-weight:600;';
+                badge.textContent = `${dayTickets.length} ticket(s)`;
+                div.appendChild(badge);
+            }
+            
+            grid.appendChild(div);
+        }
+    }
 
     obtenerTickets();
     cargarTecnicos();
